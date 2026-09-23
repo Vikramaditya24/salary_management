@@ -2,24 +2,32 @@
 
 Format: Decision → Context → Alternatives considered → Rationale.
 
-## 1. Backend: Node.js + Express + TypeScript
+## 1. Backend: Node.js + Fastify + TypeScript
 **Context:** brief says "language/framework as per the role you applied for
 (preferred)"; no role was specified to me, so I resolved this against the
 applicant's actual day-to-day stack (Node/Express/TS, React/Next, Postgres/Mongo).
-**Alternatives considered:** Next.js full-stack (API routes instead of a separate
-Express service).
-**Rationale:** a separate Express API makes the backend/API design explicit and
-independently testable — closer to what the assessment says it's evaluating
-("engineering fundamentals," "architectural decisions") than folding it into
-Next.js API routes, which would blur frontend/backend and make the API harder to
-test in isolation.
+Revisited: reconsidered Express vs. Fastify directly.
+**Alternatives considered:** Express (the more conventional choice given the stated
+stack); Next.js full-stack (API routes instead of a separate service).
+**Rationale:** kept a separate backend service (not folded into Next.js) so the
+API design stays explicit and independently testable — closer to what the
+assessment is evaluating than blurring frontend/backend. Within that, Fastify over
+Express: nothing in this project depends on Express-only middleware, and Fastify
+gives first-class TS types on request/reply objects, built-in JSON-schema request
+validation, and lower overhead per request — a straightforward upgrade with no
+real cost here, not a stack change just for novelty.
 
-## 2. Frontend: React + Vite, not Next.js
+## 2. Frontend: Next.js (App Router) + Tailwind CSS
 **Context:** requirements allow "ReactJS or NextJS."
-**Alternatives considered:** Next.js.
-**Rationale:** no SSR/SEO need for an internal HR tool behind a login; Next.js's
-routing/data-fetching conventions solve problems this app doesn't have. Vite + React
-Router is simpler to set up, test, and reason about for a pure SPA.
+**Alternatives considered:** React + Vite (originally chosen, on the grounds that
+this is a plain SPA behind a login with no SSR/SEO need).
+**Rationale:** switched to Next.js at the applicant's direction. The original
+Vite reasoning still holds (no SSR is *required*), but Next.js is used purely as
+a React framework — file-based routing and TS/tooling conventions out of the box —
+without adopting its API routes or server actions, so the frontend/backend split
+from decision #1 is unaffected. Tailwind CSS for styling, with shadcn/ui (itself
+Tailwind-based) as the component library, so there's one styling system rather
+than layering a second (e.g. MUI's CSS-in-JS) on top.
 
 ## 3. Relational DB: PostgreSQL, via Prisma ORM
 **Context:** "Relational database of your choice, like SQLite" — SQLite is
@@ -88,9 +96,12 @@ execution. No E2E browser suite — given the time budget, unit/integration cove
 of salary-history transitions and aggregation logic (where a silent bug would
 produce wrong numbers) is higher-value than browser-level tests of a small UI.
 
-## 10. Deployment: Railway (API + Postgres) + Vercel (frontend)
+## 10. Deployment: Render (API + Postgres) + Vercel (frontend)
 **Context:** "fully functional deployed software" is required.
-**Alternatives considered:** Render, Fly.io, a single Dockerized VM.
-**Rationale:** free/low-cost tiers, minimal ops configuration, fast to set up for a
-take-home — this is a "get it reachable" decision, not a production-architecture
-claim.
+**Alternatives considered:** Railway (originally chosen), Fly.io, a single
+Dockerized VM.
+**Rationale:** switched to Render at the applicant's direction; both are equivalent
+for this project's purposes — free/low-cost tier, a managed Postgres instance, and
+a web service for the API with minimal config. Vercel remains the frontend target
+and is also Next.js's default deployment path, requiring no extra configuration.
+This is a "get it reachable" decision, not a production-architecture claim.

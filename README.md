@@ -10,10 +10,10 @@ Planning phase complete. Application code not yet implemented (see
 [`docs/decisions.md`](docs/decisions.md)).
 
 ## Stack
-- **Backend:** Node.js, Express, TypeScript, PostgreSQL, Prisma
-- **Frontend:** React, Vite, TypeScript, Tailwind + shadcn/ui, TanStack Query
+- **Backend:** Node.js, Fastify, TypeScript, PostgreSQL, Prisma
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS + shadcn/ui, TanStack Query
 - **Testing:** Vitest, Supertest, React Testing Library
-- **Deployment:** Docker Compose (local), Railway + Vercel (deployed)
+- **Deployment:** Docker Compose (local), Render + Vercel (deployed)
 
 ## Repository Structure
 ```
