@@ -1,0 +1,20 @@
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'node:path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.mts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    env: {
+      NEXT_PUBLIC_API_URL: 'http://localhost:4000',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(import.meta.dirname, './src'),
+    },
+  },
+});
