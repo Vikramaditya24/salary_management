@@ -46,10 +46,10 @@ database `acme_salary_dev`, matching the backend's `.env.example` defaults.
 cd backend
 cp .env.example .env
 npm install
-npx prisma generate
 npm run dev
 ```
-The API starts on `http://localhost:4000`. Check it's working:
+`npm install` runs `prisma generate` automatically (via `postinstall`). The API
+starts on `http://localhost:4000`. Check it's working:
 ```bash
 curl http://localhost:4000/health
 ```
