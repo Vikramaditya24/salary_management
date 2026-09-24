@@ -1,0 +1,17 @@
+// Prisma schema — foundation phase.
+//
+// Intentionally has no domain models yet (Employee, SalaryRecord, etc.).
+// Those are added in the next phase, per docs/decisions.md. This file's job
+// right now is just to prove the ORM + DB connection are wired correctly:
+// `npx prisma generate` produces a working client, and the health-check
+// route uses it to run `SELECT 1` against the configured database.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
