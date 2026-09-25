@@ -5,9 +5,11 @@ maintaining salary data across ~10,000 employees in multiple countries, and for
 answering questions about how the org pays people.
 
 ## Status
-**Foundation phase.** Project structure, tooling, and a minimal app shell are in
-place; employee/salary management features are not implemented yet.
-See [`docs/requirements.md`](docs/requirements.md), [`docs/architecture.md`](docs/architecture.md),
+**Employee management API phase.** The relational schema and deterministic
+10,000-row seed (previous phase) are in place, and the employee management
+REST API (list/search/filter/view/create/edit/deactivate) is implemented — see
+[`docs/api.md`](docs/api.md). Salary editing, auth, analytics and the frontend
+are not built yet. See [`docs/requirements.md`](docs/requirements.md), [`docs/architecture.md`](docs/architecture.md),
 and [`docs/decisions.md`](docs/decisions.md) for the product and technical plan.
 
 ## Stack
@@ -84,10 +86,36 @@ solution evolved, not just the end state. Design and scope decisions are recorde
 `docs/decisions.md` as they're made, including alternatives considered and why they
 were rejected.
 
+## Employee Data Layer
+
+The schema (`backend/prisma/schema.prisma`, migration in
+`backend/prisma/migrations/`) covers `Employee`, `SalaryRecord`, and
+`Country`/`Currency` reference tables. See `docs/decisions.md` (#10-#13) for
+the design rationale — money representation, the "one current salary per
+employee" constraint, reference tables vs. enums, and the seed's determinism.
+
+```bash
+cd backend
+npx prisma migrate deploy   # apply migrations to a clean database
+npm run db:seed             # deterministic, safe to rerun — always ends at 10,000 employees
+```
+
+`npm run db:seed` is the reliable way to run the seed regardless of Prisma
+version/config quirks around `prisma db seed` autodetection; the
+`package.json` `"prisma".seed` entry is there for tooling that looks for it,
+but isn't load-bearing.
+
+Test coverage:
+- `backend/prisma/seed/__tests__/*.test.ts` — pure unit tests for the PRNG,
+  money helpers, and the dataset generator (determinism, uniqueness, valid
+  country/currency combinations, salary-history integrity). No database
+  needed.
+- `backend/src/employee-data-layer.db.test.ts` — integration tests against a
+  real Postgres test database for the DB-level constraints themselves
+  (unique/foreign-key/check constraints, the partial-unique "one current
+  salary" index, cascade delete).
+
 ## Notes on This Phase
-- The Prisma schema has no domain models yet (`Employee`, `SalaryRecord`, etc.) —
-  those land with the next phase. Right now it only proves the DB connection: the
-  `/health` endpoint runs `SELECT 1` through Prisma.
 - `docker-compose.yml` currently runs Postgres only. The backend and frontend run
   directly via `npm run dev` for a fast local feedback loop; containerizing them
   (for a single `docker compose up` covering everything) is deferred until closer
@@ -97,3 +125,13 @@ were rejected.
   the library's standard output — the shadcn CLI needs network access outside
   this project's dev environment, so components can be added the normal way
   (`npx shadcn@latest add <component>`) going forward.
+
+## Employee API
+Reference: [`docs/api.md`](docs/api.md); design decisions: `docs/decisions.md` #15-#18.
+
+```bash
+cd backend
+npm run db:seed        # 10,000 employees
+npm test               # unit + DB-backed tests (needs the acme_salary_test database, see above)
+npm run verify:api     # checks the API against the seeded dev database, incl. timings
+```

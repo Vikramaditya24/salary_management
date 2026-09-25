@@ -53,12 +53,15 @@ Monorepo, two workspaces: `/backend` and `/frontend`. Not split into separate re
   since the project isn't relying on Express-only middleware.
 - **Prisma** as ORM: type-safe queries, migrations, and a schema file that doubles
   as living documentation of the data model.
-- **Layering:** `routes → controllers → services → prisma`. Services hold business
+- **Layering:** `routes → services → prisma` (route handlers are thin HTTP adapters and double as controllers; a separate controller layer would be pass-through code). Services hold business
   rules (e.g. "closing out" the previous salary record when a new one is added) and
   are what unit tests target directly, without spinning up HTTP.
 - **Key endpoints:**
-  - `GET /employees` — paginated, filterable (country, department, role, search)
-  - `GET /employees/:id` — profile + salary history
+  - `GET /employees` — paginated, filterable (country, department, role, status, search), sortable
+  - `GET /employees/filter-options` — values for the UI's filter controls
+  - `GET /employees/:id` — profile + current salary (full salary history: salary phase)
+  - `POST /employees`, `PATCH /employees/:id` — create / edit
+  - `DELETE /employees/:id` — soft delete (sets TERMINATED); see decisions #15
   - `POST /employees/:id/salary` — add a new salary record (closes prior one)
   - `GET /analytics/summary` — aggregate stats, filterable by the same dimensions
   - `POST /auth/login` — single HR Manager account, returns a JWT

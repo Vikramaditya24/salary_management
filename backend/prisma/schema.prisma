@@ -1,10 +1,25 @@
-// Prisma schema — foundation phase.
+// Prisma schema — employee data layer phase.
 //
-// Intentionally has no domain models yet (Employee, SalaryRecord, etc.).
-// Those are added in the next phase, per docs/decisions.md. This file's job
-// right now is just to prove the ORM + DB connection are wired correctly:
-// `npx prisma generate` produces a working client, and the health-check
-// route uses it to run `SELECT 1` against the configured database.
+// Scope of this phase (see docs/requirements.md, docs/architecture.md,
+// docs/decisions.md): the relational schema for employee identity and
+// salary history, plus the small reference tables needed to keep
+// country/currency data valid. No User/auth model yet, no API routes built
+// on top of this — that's the next phase.
+//
+// Design notes:
+// - Money is `Decimal`, never `Float`, mapped to Postgres `numeric` — exact
+//   arithmetic, no binary floating-point rounding error on salary figures.
+// - Salary is an append-only history table (`SalaryRecord`), not a column on
+//   `Employee` — see docs/decisions.md #4. The "current" record is the one
+//   row per employee with `endDate IS NULL`; that invariant is enforced by a
+//   partial unique index added in the migration SQL (Prisma's schema DSL
+//   can't express partial indexes declaratively), not just app logic.
+// - `Country` and `Currency` are small reference tables, not enums, because
+//   they carry data (default currency, exchange rate, minor-unit count)
+//   used by the seed script and later by cross-country analytics —
+//   see docs/decisions.md #8 (static exchange-rate table).
+// - `Department` and `EmploymentStatus` are Postgres enums: a small, known,
+//   closed set of values where a typo should be impossible to persist.
 
 generator client {
   provider = "prisma-client-js"
@@ -13,5 +28,142 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+enum Department {
+  ENGINEERING
+  PRODUCT
+  DESIGN
+  SALES
+  MARKETING
+  FINANCE
+  HUMAN_RESOURCES
+  OPERATIONS
+  CUSTOMER_SUPPORT
+  LEGAL
+
+  @@map("department")
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  TERMINATED
+
+  @@map("employment_status")
+}
+
+/// Reference data: valid ISO 4217 currencies, plus what's needed to render
+/// and compare money correctly without floating point.
+model Currency {
+  /// ISO 4217 alpha code, e.g. "USD", "JPY".
+  code String @id @db.VarChar(3)
+
+  name String @db.VarChar(64)
+
+  /// Number of digits after the decimal point this currency is normally
+  /// quoted in (2 for USD/EUR, 0 for JPY, 3 for KWD, ...). Used by the seed
+  /// generator to round salary amounts to a sane value per currency.
+  minorUnit Int @map("minor_unit")
+
+  /// Static, seeded rate to convert 1 unit of this currency to USD, for
+  /// cross-country analytics (docs/decisions.md #8). Not a live FX feed —
+  /// deliberately fixed so reports and tests are deterministic.
+  exchangeRateToUsd Decimal @map("exchange_rate_to_usd") @db.Decimal(18, 8)
+
+  countries Country[]
+  salaries  SalaryRecord[]
+
+  @@map("currencies")
+}
+
+/// Reference data: countries employees can be based in, and the currency
+/// they're normally paid in.
+model Country {
+  /// ISO 3166-1 alpha-2 code, e.g. "US", "DE".
+  code String @id @db.VarChar(2)
+
+  name String @db.VarChar(64)
+
+  defaultCurrencyCode String   @map("default_currency_code") @db.VarChar(3)
+  defaultCurrency     Currency @relation(fields: [defaultCurrencyCode], references: [code])
+
+  employees Employee[]
+
+  @@index([defaultCurrencyCode])
+  @@map("countries")
+}
+
+model Employee {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Human-facing identifier (e.g. "EMP-000001"), distinct from the surrogate
+  /// PK. What HR actually searches by / references in conversation.
+  employeeNumber String @unique @map("employee_number") @db.VarChar(12)
+
+  fullName String @map("full_name") @db.VarChar(120)
+
+  email String @unique @db.VarChar(160)
+
+  countryCode String  @map("country_code") @db.VarChar(2)
+  country     Country @relation(fields: [countryCode], references: [code])
+
+  department Department
+
+  jobTitle String @map("job_title") @db.VarChar(80)
+
+  employmentStatus EmploymentStatus @default(ACTIVE) @map("employment_status")
+
+  hireDate DateTime @map("hire_date") @db.Date
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  salaryRecords SalaryRecord[]
+
+  // Filtering columns from the employee-directory workflow
+  // (search/filter by country, department, role — requirements.md #1).
+  @@index([countryCode])
+  @@index([department])
+  @@index([jobTitle])
+  @@index([employmentStatus])
+  // Composite index for the documented analytics query shape, e.g.
+  // "average salary in Engineering in Germany" (department + country
+  // together), rather than relying on a bitmap AND of two single-column
+  // indexes for the app's single most common compound filter.
+  @@index([department, countryCode])
+  @@map("employees")
+}
+
+/// Append-only salary history. One row per amount an employee has ever been
+/// paid; a raise closes the previous row (`endDate`) and inserts a new one
+/// in the same transaction — see docs/architecture.md "Data Flows".
+model SalaryRecord {
+  id String @id @default(uuid()) @db.Uuid
+
+  employeeId String   @map("employee_id") @db.Uuid
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  /// Exact decimal, never float — see schema-level note above.
+  amount Decimal @db.Decimal(14, 2)
+
+  currencyCode String   @map("currency_code") @db.VarChar(3)
+  currency     Currency @relation(fields: [currencyCode], references: [code])
+
+  effectiveDate DateTime @map("effective_date") @db.Date
+
+  /// NULL = this is the employee's current salary. Exactly one NULL row per
+  /// employee is enforced by a partial unique index (migration SQL).
+  endDate DateTime? @map("end_date") @db.Date
+
+  /// Free-text attribution ("who changed it" — requirements.md #2). Not a
+  /// FK to a User table: no auth/user model exists yet in this phase, and a
+  /// column that can't reference anything real yet would be premature.
+  createdBy String   @default("seed-script") @map("created_by") @db.VarChar(160)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  // "current salary" lookup and full-history listing both filter/sort by
+  // employee first — see docs/architecture.md's documented index list.
+  @@index([employeeId, effectiveDate])
+  @@index([currencyCode])
+  @@map("salary_records")
 }
