@@ -43,11 +43,11 @@ afterEach(async () => {
   await app.close();
 });
 
-describe('GET /api/analytics/salary', () => {
+describe('GET /analytics/salary', () => {
   it('returns salary insights for the unfiltered population by default', async () => {
     stub.getSalaryInsights.mockResolvedValue(insights);
 
-    const response = await app.inject({ method: 'GET', url: '/api/analytics/salary' });
+    const response = await app.inject({ method: 'GET', url: '/analytics/salary' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ data: insights });
@@ -59,7 +59,7 @@ describe('GET /api/analytics/salary', () => {
 
   it('forbids caching of salary data', async () => {
     stub.getSalaryInsights.mockResolvedValue(insights);
-    const response = await app.inject({ method: 'GET', url: '/api/analytics/salary' });
+    const response = await app.inject({ method: 'GET', url: '/analytics/salary' });
     expect(response.headers['cache-control']).toBe('no-store');
   });
 
@@ -68,7 +68,7 @@ describe('GET /api/analytics/salary', () => {
 
     await app.inject({
       method: 'GET',
-      url: '/api/analytics/salary?country=de&department=ENGINEERING',
+      url: '/analytics/salary?country=de&department=ENGINEERING',
     });
 
     expect(stub.getSalaryInsights.mock.calls[0]![0]).toEqual({
@@ -80,7 +80,7 @@ describe('GET /api/analytics/salary', () => {
   it('rejects invalid query parameters with 400 and per-field details', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/api/analytics/salary?department=WIZARDRY',
+      url: '/analytics/salary?department=WIZARDRY',
     });
 
     expect(response.statusCode).toBe(400);
@@ -91,7 +91,7 @@ describe('GET /api/analytics/salary', () => {
   });
 
   it('rejects unknown query parameters rather than silently ignoring them', async () => {
-    const response = await app.inject({ method: 'GET', url: '/api/analytics/salary?contry=DE' });
+    const response = await app.inject({ method: 'GET', url: '/analytics/salary?contry=DE' });
     expect(response.statusCode).toBe(400);
     expect(stub.getSalaryInsights).not.toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe('GET /api/analytics/salary', () => {
       ]),
     );
 
-    const response = await app.inject({ method: 'GET', url: '/api/analytics/salary?country=ZZ' });
+    const response = await app.inject({ method: 'GET', url: '/analytics/salary?country=ZZ' });
 
     expect(response.statusCode).toBe(422);
     expect(response.json().error.code).toBe('COUNTRY_NOT_FOUND');
@@ -114,7 +114,7 @@ describe('GET /api/analytics/salary', () => {
       new Error('connect ECONNREFUSED postgres://acme:hunter2@db.internal:5432/salary'),
     );
 
-    const response = await app.inject({ method: 'GET', url: '/api/analytics/salary' });
+    const response = await app.inject({ method: 'GET', url: '/analytics/salary' });
 
     expect(response.statusCode).toBe(500);
     const body = response.json();

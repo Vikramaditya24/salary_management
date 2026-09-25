@@ -24,8 +24,8 @@ export const salaryAnalyticsRoutes: FastifyPluginAsync<SalaryAnalyticsRoutesOpti
     reply.header('Cache-Control', 'no-store');
   });
 
-  app.get('/api/analytics/salary', async (request) => {
+  app.get('/analytics/salary', async (request) => {
     const query = parseSalaryInsightsQuery(request.query);
-    return { data: await service.getSalaryInsights(query) };
+    return  await service.getSalaryInsights(query) ;
   });
 };

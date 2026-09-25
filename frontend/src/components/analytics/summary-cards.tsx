@@ -1,9 +1,8 @@
-import type { SalaryStats } from '@/lib/api/analytics';
-import { formatCount, formatUsd } from '@/lib/format';
+import type { SalaryOverallStats } from '@/lib/api/analytics';
+import { formatCount, formatMoney } from '@/lib/format';
 
 interface SummaryCardsProps {
-  totalEmployees: number;
-  overall: SalaryStats | null;
+  overall: SalaryOverallStats;
 }
 
 function Card({ label, value }: { label: string; value: string }) {
@@ -15,16 +14,16 @@ function Card({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function SummaryCards({ totalEmployees, overall }: SummaryCardsProps) {
+export function SummaryCards({ overall }: SummaryCardsProps) {
   const dash = '\u2014';
+  const money = (amount: string | null) => (amount ? formatMoney(amount, 'USD') : dash);
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      <Card label="Total Employees" value={formatCount(totalEmployees)} />
-      <Card label="Average Salary" value={overall ? formatUsd(overall.average) : dash} />
-      <Card label="Median Salary" value={overall ? formatUsd(overall.median) : dash} />
-      <Card label="Minimum Salary" value={overall ? formatUsd(overall.min) : dash} />
-      <Card label="Maximum Salary" value={overall ? formatUsd(overall.max) : dash} />
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <Card label="Total Employees" value={formatCount(overall.employeeCount)} />
+      <Card label="Average Salary" value={money(overall.averageSalaryUsd)} />
+      <Card label="Minimum Salary" value={money(overall.minSalaryUsd)} />
+      <Card label="Maximum Salary" value={money(overall.maxSalaryUsd)} />
     </div>
   );
 }

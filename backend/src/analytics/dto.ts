@@ -37,8 +37,8 @@ export interface SalaryInsightsDto {
   /** Every monetary figure below is converted to this currency so countries with different pay currencies are comparable. */
   currency: 'USD';
   overall: SalaryOverallStats;
-  byDepartment: DepartmentSalaryBreakdown[];
-  byCountry: CountrySalaryBreakdown[];
+  headcountByDepartment: DepartmentSalaryBreakdown[];
+  headcountByCountry: CountrySalaryBreakdown[];
 }
 
 // -- raw query row shapes (snake_case: these come straight from $queryRaw) --
@@ -90,12 +90,12 @@ export function toSalaryInsightsDto(
       minSalaryUsd: moneyOrNull(overallRow?.min_usd),
       maxSalaryUsd: moneyOrNull(overallRow?.max_usd),
     },
-    byDepartment: departmentRows.map((row) => ({
+    headcountByDepartment: departmentRows.map((row) => ({
       department: row.department,
       employeeCount: row.employee_count,
       averageSalaryUsd: money(row.average_usd),
     })),
-    byCountry: countryRows.map((row) => ({
+    headcountByCountry: countryRows.map((row) => ({
       country: { code: row.country_code, name: row.country_name },
       employeeCount: row.employee_count,
       averageSalaryUsd: money(row.average_usd),

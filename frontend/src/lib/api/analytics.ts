@@ -6,57 +6,42 @@ import { apiRequest } from './client';
  * this module never recomputes salary statistics client-side.
  */
 
-export interface SalaryStats {
-  average: number;
-  median: number;
-  min: number;
-  max: number;
+/** Exact decimal as a string (e.g. "128450.00"), never a JSON number - `null` when there is no matching employee. */
+export interface SalaryOverallStats {
+  employeeCount: number;
+  totalSalaryUsd: string | null;
+  averageSalaryUsd: string | null;
+  minSalaryUsd: string | null;
+  maxSalaryUsd: string | null;
 }
 
 export interface CountryHeadcount {
-  country: string;
-  count: number;
+  country: { code: string; name: string };
+  employeeCount: number;
+  averageSalaryUsd: string;
 }
 
 export interface DepartmentHeadcount {
   department: string;
-  count: number;
+  employeeCount: number;
+  averageSalaryUsd: string;
 }
 
-export interface CountrySalaryStats {
-  country: string;
-  count: number;
-  stats: SalaryStats;
-}
-
-export interface DepartmentSalaryStats {
-  department: string;
-  count: number;
-  stats: SalaryStats;
-}
-
-export interface SalaryBand {
-  label: string;
-  count: number;
-}
-
-export interface SalaryOutlier {
-  id: string;
-  fullName: string;
-  country?: string;
-  department?: string;
-  salaryUsd: number;
+export interface SalaryAnalyticsResponseFilters {
+  country: string | null;
+  department: string | null;
 }
 
 export interface SalaryAnalytics {
-  totalEmployees: number;
-  overall: SalaryStats | null;
-  headcountByCountry: CountryHeadcount[];
+  filters: SalaryAnalyticsResponseFilters;
+  currency: 'USD';
+  overall: SalaryOverallStats;
   headcountByDepartment: DepartmentHeadcount[];
-  salaryByCountry: CountrySalaryStats[];
-  salaryByDepartment: DepartmentSalaryStats[];
-  distribution: SalaryBand[];
-  outliers: SalaryOutlier[];
+  headcountByCountry: CountryHeadcount[];
+}
+
+interface SalaryAnalyticsEnvelope {
+  data: SalaryAnalytics;
 }
 
 export interface SalaryAnalyticsFilters {
@@ -72,6 +57,9 @@ export function toAnalyticsQuery(filters: SalaryAnalyticsFilters): string {
   return params.toString();
 }
 
-export function getSalaryAnalytics(query: string, signal?: AbortSignal): Promise<SalaryAnalytics> {
-  return apiRequest<SalaryAnalytics>(`/analytics/salary${query ? `?${query}` : ''}`, { signal });
+export async function getSalaryAnalytics(query: string, signal?: AbortSignal): Promise<SalaryAnalytics> {
+  const envelope = await apiRequest<SalaryAnalyticsEnvelope>(`/analytics/salary${query ? `?${query}` : ''}`, {
+    signal,
+  });
+  return envelope.data;
 }

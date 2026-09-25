@@ -9,10 +9,7 @@ import { useApiQuery } from '@/lib/use-api-query';
 import { cn } from '@/lib/utils';
 
 import { HeadcountTable } from './headcount-table';
-import { OutliersTable } from './outliers-table';
-import { SalaryDistribution } from './salary-distribution';
 import { SalaryFilters } from './salary-filters';
-import { SalaryGroupTable } from './salary-group-table';
 import { SummaryCards } from './summary-cards';
 
 function DashboardSkeleton() {
@@ -54,7 +51,7 @@ export function SalaryInsightsPage() {
   const analytics = useApiQuery(fetchAnalytics);
 
   const countryOptions = (baseline.data?.headcountByCountry ?? [])
-    .map((row) => row.country)
+    .map((row) => row.country.name)
     .sort((a, b) => a.localeCompare(b));
   const departmentOptions = (baseline.data?.headcountByDepartment ?? [])
     .map((row) => row.department)
@@ -85,7 +82,7 @@ export function SalaryInsightsPage() {
         <QueryError error={analytics.error} onRetry={analytics.refetch} />
       ) : analytics.isInitialLoading || !data ? (
         <DashboardSkeleton />
-      ) : data.totalEmployees === 0 ? (
+      ) : data.overall.employeeCount === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border px-6 py-14 text-center">
           <h2 className="text-lg font-semibold">
             {isFiltered ? 'No employees match your filters' : 'No salary data yet'}
@@ -101,14 +98,17 @@ export function SalaryInsightsPage() {
           aria-busy={analytics.isFetching}
           className={cn('flex flex-col gap-6 transition-opacity', analytics.isFetching && 'opacity-60')}
         >
-          <SummaryCards totalEmployees={data.totalEmployees} overall={data.overall} />
+          <SummaryCards overall={data.overall} />
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Section title="Headcount by Country">
               <HeadcountTable
                 caption="Number of employees per country."
                 groupLabel="Country"
-                rows={data.headcountByCountry.map((row) => ({ label: row.country, count: row.count }))}
+                rows={data.headcountByCountry.map((row) => ({
+                  label: row.country.name,
+                  count: row.employeeCount,
+                }))}
                 emptyMessage="No country headcount data available."
               />
             </Section>
@@ -119,49 +119,12 @@ export function SalaryInsightsPage() {
                 groupLabel="Department"
                 rows={data.headcountByDepartment.map((row) => ({
                   label: row.department,
-                  count: row.count,
+                  count: row.employeeCount,
                 }))}
                 emptyMessage="No department headcount data available."
               />
             </Section>
           </div>
-
-          <Section title="Salary Distribution">
-            <SalaryDistribution
-              bands={data.distribution}
-              emptyMessage="No salary distribution data available."
-            />
-          </Section>
-
-          <Section title="Salary by Country (USD)">
-            <SalaryGroupTable
-              caption="Average and median salary per country, normalized to USD."
-              groupLabel="Country"
-              rows={data.salaryByCountry.map((row) => ({
-                label: row.country,
-                count: row.count,
-                stats: row.stats,
-              }))}
-              emptyMessage="No country salary data available."
-            />
-          </Section>
-
-          <Section title="Salary by Department (USD)">
-            <SalaryGroupTable
-              caption="Average and median salary per department, normalized to USD."
-              groupLabel="Department"
-              rows={data.salaryByDepartment.map((row) => ({
-                label: row.department,
-                count: row.count,
-                stats: row.stats,
-              }))}
-              emptyMessage="No department salary data available."
-            />
-          </Section>
-
-          <Section title="Salary Outliers">
-            <OutliersTable outliers={data.outliers} emptyMessage="No salary outliers detected." />
-          </Section>
         </div>
       )}
     </div>
