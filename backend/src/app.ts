@@ -1,5 +1,10 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import { salaryAnalyticsRoutes } from './analytics/routes.js';
+import {
+  createSalaryAnalyticsService,
+  type SalaryAnalyticsService,
+} from './analytics/service.js';
 import { env } from './config/env.js';
 import { registerErrorHandling } from './lib/error-handler.js';
 import { prisma } from './lib/prisma.js';
@@ -10,6 +15,8 @@ import { healthRoutes } from './routes/health.js';
 export interface BuildAppOptions {
   /** Override the employee service (used by HTTP-layer tests). */
   employeeService?: EmployeeService;
+  /** Override the salary analytics service (used by HTTP-layer tests). */
+  salaryAnalyticsService?: SalaryAnalyticsService;
 }
 
 /** Largest accepted request body. Employee payloads are a few hundred bytes. */
@@ -32,6 +39,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
                 '*.amount',
                 '*.salary',
                 '*.currentSalary',
+                '*.totalSalaryUsd',
+                '*.averageSalaryUsd',
+                '*.minSalaryUsd',
+                '*.maxSalaryUsd',
               ],
               censor: '[REDACTED]',
             },
@@ -51,6 +62,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(healthRoutes);
   await app.register(employeeRoutes, {
     service: options.employeeService ?? createEmployeeService(prisma),
+  });
+  await app.register(salaryAnalyticsRoutes, {
+    service: options.salaryAnalyticsService ?? createSalaryAnalyticsService(prisma),
   });
 
   return app;

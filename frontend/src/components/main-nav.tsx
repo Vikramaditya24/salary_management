@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 export function MainNav() {
   const pathname = usePathname();
   const onEmployees = pathname === '/employees' || pathname.startsWith('/employees/');
+  const onAnalytics = pathname.startsWith('/analytics');
 
   return (
     <nav aria-label="Main" className="flex gap-4 text-sm">
@@ -21,9 +22,16 @@ export function MainNav() {
       >
         Employees
       </Link>
-      <span aria-disabled="true" className="text-muted-foreground/60">
-        Analytics
-      </span>
+      <Link
+        href="/analytics/salary"
+        aria-current={onAnalytics ? 'page' : undefined}
+        className={cn(
+          'rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          onAnalytics ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Salary Insights
+      </Link>
     </nav>
   );
 }
