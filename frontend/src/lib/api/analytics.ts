@@ -58,8 +58,8 @@ export function toAnalyticsQuery(filters: SalaryAnalyticsFilters): string {
 }
 
 export async function getSalaryAnalytics(query: string, signal?: AbortSignal): Promise<SalaryAnalytics> {
-  const envelope = await apiRequest<SalaryAnalyticsEnvelope>(`/analytics/salary${query ? `?${query}` : ''}`, {
+  const envelope = await apiRequest<SalaryAnalytics>(`/analytics/salary${query ? `?${query}` : ''}`, {
     signal,
   });
-  return envelope.data;
+  return envelope;
 }

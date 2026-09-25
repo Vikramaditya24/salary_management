@@ -51,15 +51,15 @@ export function SalaryInsightsPage() {
   const analytics = useApiQuery(fetchAnalytics);
 
   const countryOptions = (baseline.data?.headcountByCountry ?? [])
-    .map((row) => row.country.name)
-    .sort((a, b) => a.localeCompare(b));
+    .map((row) => ({ name: row.country.name, code: row.country.code }))
+    .sort((a, b) => a.name.localeCompare(b.name));
   const departmentOptions = (baseline.data?.headcountByDepartment ?? [])
     .map((row) => row.department)
     .sort((a, b) => a.localeCompare(b));
 
   const isFiltered = Boolean(filters.country || filters.department);
   const data = analytics.data;
-
+console.log("Data",analytics)
   return (
     <div className="flex flex-col gap-6">
       <div>

@@ -8,7 +8,7 @@ import type { SalaryAnalyticsFilters } from '@/lib/api/analytics';
 interface SalaryFiltersProps {
   filters: SalaryAnalyticsFilters;
   /** Countries/departments available to filter by - derived from the unfiltered analytics response. */
-  countryOptions: string[];
+  countryOptions: { name: string, code: string }[];
   departmentOptions: string[];
   onChange: (patch: Partial<SalaryAnalyticsFilters>) => void;
   onClear: () => void;
@@ -36,8 +36,8 @@ export function SalaryFilters({
           >
             <option value="">All countries</option>
             {countryOptions.map((country) => (
-              <option key={country} value={country}>
-                {country}
+              <option key={country.code} value={country.code}>
+                {country.name}
               </option>
             ))}
           </Select>
