@@ -29,4 +29,4 @@ Next.js App Router pages render an HR interface with small Tailwind-based compon
 
 ## Validation and limits
 
-Vitest covers pure data generation, services, HTTP behavior and frontend interactions. Database integration suites require a migrated `acme_salary_test` PostgreSQL database. There is no browser end-to-end test suite or proof of live deployment in the source tree. Authentication is one configured account, not RBAC; the frontend's bearer token is readable by scripts on its origin, so HTTPS and trusted scripts are important. The fixed FX table is illustrative rather than a live financial rate.
+Vitest covers pure data generation, services, HTTP behavior and frontend interactions. Database integration suites require a migrated `acme_salary_test` PostgreSQL database. There is no browser end-to-end test suite; the live deployment linked in the README needs a manual smoke test after each deploy. Authentication is one configured account, not RBAC; the frontend's bearer token is readable by scripts on its origin, so HTTPS and trusted scripts are important. The fixed FX table is illustrative rather than a live financial rate.
