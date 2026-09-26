@@ -74,7 +74,7 @@ function parseErrorEnvelope(status: number, json: unknown): ApiError {
 
 /**
  * Thin fetch wrapper. Content-Type is only sent when there is a body (Fastify rejects an
- * empty body that claims to be JSON, e.g. on DELETE - see docs/api.md).
+ * empty body that claims to be JSON, e.g. on DELETE - see root docs/api.md).
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, signal } = options;

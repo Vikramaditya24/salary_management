@@ -1,30 +1,43 @@
-# ACME salary backend
+# Backend
 
-Fastify, TypeScript, Prisma, PostgreSQL. One HR Manager account, a paginated employee directory, transactional salary history, and database aggregated salary insights for a 10,000 employee demo.
+Fastify, TypeScript, Prisma and PostgreSQL. This service owns HR authentication, employee records, transactional salary history and aggregate analytics. The [root README](../README.md) covers the full local flow; [API contract](../docs/api.md) is authoritative.
 
-## Setup
+## Local setup
 
-Requires Node 24 (or compatible recent Node) and PostgreSQL with permission to install `pg_trgm`. Create a database and set `DATABASE_URL` in `.env` (copy `.env.example`). Set `HR_EMAIL`, and run `npm run auth:hash -- 'a-long-private-password'`; paste the resulting hash into `HR_PASSWORD_HASH`. Keep the plaintext password out of files and version control. Set `CORS_ORIGIN` to your frontend origin. Production startup requires a configured password hash. Use HTTPS in deployment because login returns a bearer token.
+Use Node.js 24+ and PostgreSQL. From the repository root, `docker compose up -d` starts the local development database. From `backend/`:
 
 ```sh
+cp .env.example .env
 npm ci
+npm run auth:hash -- 'choose-a-private-password'
+```
+
+Set `HR_PASSWORD_HASH` in `.env` to the generated hash; keep the plaintext password private. `HR_EMAIL` defaults to `hr@acme.example`. Set `DATABASE_URL` to your database and `CORS_ORIGIN` to the exact frontend origin. `.env.example` contains local development defaults and no usable password hash.
+
+```sh
 npm run prisma:migrate:deploy
 npm run db:seed
 npm run dev
 ```
 
-The seed creates exactly 10,000 synthetic employees and salary histories, using fixed seed 20260924. **The seed replaces all employees and salaries**: use only on an empty/demo database. It does not clear login sessions. Login with the email/password configured above. No default password is shipped.
+The seed deterministically creates exactly 10,000 synthetic employees with salary histories. **It replaces employee and salary rows. Never seed a live database with real data.** `/health` returns `200` when the database is connected and `503` when degraded. Production startup requires `HR_PASSWORD_HASH` and HTTPS hosting is necessary for the browser bearer-token flow.
 
-## Commands
+## Tests
+
+Unit and mocked HTTP tests without PostgreSQL:
 
 ```sh
-npm run build
-npm run lint
-npm test
-npm run format:check
-npm run verify:api
+npx vitest run --exclude '**/*.db.test.ts'
 ```
 
-The full `npm test` suite includes PostgreSQL integration tests and requires a migrated `acme_salary_test` database at the URL in `vitest.config.ts`. Set up that database separately before running it. To run the unit and HTTP mock tests without PostgreSQL: `npx vitest run --exclude '**/*.db.test.ts'`.
+For the full suite, create a separate `acme_salary_test` database in local Postgres, then apply migrations to it. The test URL is currently set in `vitest.config.ts` to local port 5432:
 
-The live API verification script expects seeded data and `VERIFY_API_TOKEN` set to a freshly obtained login token. The full contract and frontend integration flow are in [docs/api.md](docs/api.md). Design notes are in [docs/architecture.md](docs/architecture.md) and [docs/decisions.md](docs/decisions.md).
+```sh
+docker compose exec postgres createdb -U postgres acme_salary_test
+DATABASE_URL='postgresql://postgres:postgres@localhost:5432/acme_salary_test' npm run prisma:migrate:deploy
+npm test
+```
+
+The `createdb` step is needed only once; if the test database already exists, proceed to migrations. Never point the test suite at the development or production database. Database-backed suites check constraints, salary changes and API behavior. Other checks: `npm run lint`, `npm run format:check`, `npm run build`. To verify a running seeded API, obtain a fresh login token and run `VERIFY_API_TOKEN=... npm run verify:api` locally without committing the token.
+
+For technical rationale, see [architecture](../docs/architecture.md) and [decisions](../docs/decisions.md).

@@ -39,7 +39,7 @@ interface ServerFeedback {
 
 const isField = (name: string): name is EmployeeField => (FIELD_ORDER as string[]).includes(name);
 
-/** Maps the API's error contract (docs/api.md) onto form fields, with a banner for the rest. */
+/** Maps the API's error contract (root docs/api.md) onto form fields, with a banner for the rest. */
 function readServerFeedback(error: ApiError): ServerFeedback {
   const fieldErrors: FormErrors = {};
   let message: string | null = null;

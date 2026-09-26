@@ -1,41 +1,37 @@
 # ACME Salary Management
 
-A web application for one HR Manager to maintain salary records for a 10,000-employee, multi-country organization and answer compensation questions. This is an assessment project. The UI draws on Incubyte's mint, deep green, and lime visual palette; it remains an ACME product and is not affiliated with Incubyte.
+A web application for ACME's HR Manager to maintain salary records for 10,000 employees across countries and answer compensation questions. The implementation uses a Fastify API, PostgreSQL and a responsive Next.js interface.
 
-## What works
+## Features
 
-- Search, filter, sort and paginate employees; create, edit, deactivate and reactivate records.
-- View current salary and history; record a new salary without overwriting prior entries.
-- Explore server-aggregated compensation by country, department and role with interactive charts and a salary distribution histogram. Cross-country amounts use a seeded static USD conversion table.
-- Sign in as the configured HR Manager. No default plaintext password or self-registration is included.
-- Generate a deterministic 10,000-employee demo dataset. **Seeding replaces employee and salary data; use it only on an empty/demo database.**
+- Search, filter, sort and page the employee directory. Create, edit, deactivate and reactivate profiles.
+- View current pay and dated salary history. Record changes without losing prior amounts.
+- Compare headcount and average pay by country, department and role; inspect summary statistics and a salary distribution chart.
+- Sign in with a configured HR Manager account. Seed 10,000 deterministic synthetic employees for a disposable demo.
 
-The [one-page requirements](docs/requirements.md), [architecture](docs/architecture.md), [decisions](docs/decisions.md), [API contract](docs/api.md), [assessment review](docs/assessment-review.md), and [AI workflow note](docs/ai-workflow.md) explain scope and trade-offs.
+Cross-country analytics convert annual pay to USD using **fixed illustrative rates**, not live exchange rates.
 
-## Stack
+## Run locally
 
-- Backend: Node.js, Fastify, TypeScript, Prisma, PostgreSQL.
-- Frontend: Next.js App Router, React, TypeScript, Tailwind CSS and small accessible components.
-- Tests: Vitest, React Testing Library and database-backed integration tests.
-
-## Local setup
-
-Use Node 24+, npm and Docker or another PostgreSQL instance. From the repo root:
+You need Node.js 24+, npm and Docker with Compose (or a PostgreSQL instance). From the repository root:
 
 ```sh
 docker compose up -d
 cd backend
 cp .env.example .env
-# Edit .env: set DATABASE_URL and HR_EMAIL.
 npm ci
-# Generate your own password hash with: npm run auth:hash -- 'a-long-private-password'
-# Put the resulting hash in HR_PASSWORD_HASH; remember the plaintext password for login.
-npx prisma migrate deploy
+npm run auth:hash -- 'choose-a-private-password'
+```
+
+Put the generated hash in `backend/.env` as `HR_PASSWORD_HASH`, and keep the plaintext password private. Set `HR_EMAIL` if you want an address other than `hr@acme.example`. Then:
+
+```sh
+npm run prisma:migrate:deploy
 npm run db:seed
 npm run dev
 ```
 
-In a second terminal:
+**The seed replaces employee and salary records. Run it only against an empty or disposable demo database.** Leave the API running and open a second terminal:
 
 ```sh
 cd frontend
@@ -44,12 +40,35 @@ npm ci
 npm run dev
 ```
 
-Visit `http://localhost:3000/login` and use the `HR_EMAIL` and password you configured. The backend defaults to `http://localhost:4000`; frontend `.env.local` points there. For details see [backend](backend/README.md) and [frontend](frontend/README.md) setup guides.
+Open `http://localhost:3000/login`. Sign in with the email and password you configured. The local frontend calls `http://localhost:4000` by default. See the [backend](backend/README.md) and [frontend](frontend/README.md) guides for package-specific details.
 
-## Validation
+## Tests and build
 
-Run `npm test`, `npm run lint`, `npm run build`, and `npm run format:check` in each package. Backend database integration tests require a migrated, disposable PostgreSQL test database; never run the demo seed on a production database.
+```sh
+cd frontend
+npm test
+npm run lint
+npm run format:check
+npm run build
+```
 
-## Submission state
+```sh
+cd backend
+npm run lint
+npm run build
+npm test
+```
 
-The source archive is not a deployed instance and has no demo video or public repository URL. Configure HTTPS hosting for the frontend, API, and PostgreSQL; set production environment variables and CORS origin; then verify the seeded app end to end, record a demo, and share the real repository link. The imported archive had no `.git` history, so its earlier development commits cannot be recovered from it. See [assessment review](docs/assessment-review.md) for a precise status.
+The backend's full test suite needs a separate migrated `acme_salary_test` PostgreSQL database. See [backend testing](backend/README.md) for setup and a unit-only command.
+
+## Documentation
+
+- [Requirements and exclusions](docs/requirements.md) — the one-page product brief.
+- [Architecture](docs/architecture.md) and [engineering decisions](docs/decisions.md) — implementation and trade-offs.
+- [API contract](docs/api.md) — the authoritative endpoint reference.
+- [Deployment and reviewer smoke test](docs/deployment.md) — Render/Vercel handoff.
+- [AI-assisted development note](docs/ai-workflow.md) — how the tools were used and where human review matters.
+
+## Submission
+
+A public deployment and demo video must be added before sending the assessment. The GitHub repository's existing commit history should be preserved; do not replace it with the Git metadata of a downloaded ZIP. After deployment, add the live frontend URL, demo video link and any reviewer access instructions here. Keep credentials and production database URLs out of the repository.

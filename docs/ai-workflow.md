@@ -1,5 +1,5 @@
-# AI-assisted review and UI update
+# AI-assisted development and review
 
-The assistant inspected the supplied assessment brief and full source archive, compared them with the public Incubyte website's visual language, and reviewed source files and test results. The implementation used a scoped palette and typography update plus targeted responsive changes to navigation, employee directory, charts, cards and pagination. It also corrected the stale root README and recorded submission gaps.
+The assessment asks for intentional use of AI with human judgment. AI tools helped inspect the repository and API contract, compare the UI against the requested design reference, propose responsive styling, identify conflicting documentation, and draft this consolidated handoff. Changes were checked against the code; frontend tests, lint, formatting and builds were run locally. Earlier work also contains service and data-layer tests.
 
-Human review remains necessary for the product choices and for a live database and deployment. This note documents this review session only. It does not claim a prompt history or test-driven sequence for earlier code that arrived in the ZIP without Git metadata.
+The engineer remains responsible for accepting design decisions, checking data and security behavior, running the PostgreSQL integration suites, reviewing the real GitHub commit history, and validating the deployed browser flow. This note describes the observed work and does not invent prompts, commits, measurements or deployment evidence. The authentic GitHub history is the source for how the original implementation evolved.

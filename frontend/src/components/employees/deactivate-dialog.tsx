@@ -15,7 +15,7 @@ interface DeactivateEmployeeDialogProps {
 
 /**
  * Confirmation for the product's "delete": a soft delete that marks the employee TERMINATED
- * and keeps their salary history (docs/decisions.md #15). Mount it only while it is open.
+ * and keeps their salary history (see root docs/decisions.md). Mount it only while it is open.
  */
 export function DeactivateEmployeeDialog({
   employee,

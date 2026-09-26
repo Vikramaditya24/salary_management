@@ -128,7 +128,7 @@ export async function updateEmployee(id: string, patch: UpdateEmployeeInput): Pr
   return res.data;
 }
 
-/** "Delete" is a soft delete: the employee is marked TERMINATED (docs/decisions.md #15). */
+/** "Delete" is a soft delete: the employee is marked TERMINATED (see root docs/decisions.md). */
 export async function deactivateEmployee(id: string): Promise<Employee> {
   const res = await apiRequest<{ data: Employee }>(employeePath(id), { method: 'DELETE' });
   return res.data;
