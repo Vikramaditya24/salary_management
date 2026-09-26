@@ -72,3 +72,10 @@ The backend's full test suite needs a separate migrated `acme_salary_test` Postg
 ## Submission
 
 A public deployment and demo video must be added before sending the assessment. The GitHub repository's existing commit history should be preserved; do not replace it with the Git metadata of a downloaded ZIP. After deployment, add the live frontend URL, demo video link and any reviewer access instructions here. Keep credentials and production database URLs out of the repository.
+
+
+https://salary-management-2t8n.onrender.com
+HR_EMAIL="hr@acme.example"
+HR_PASSWORD="hr-acme-password"
+https://www.loom.com/share/9247d2728a9746ca9050fc8a18d84a7f
+https://salary-management-umber.vercel.app/
