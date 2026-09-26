@@ -11,15 +11,18 @@ export function MainNav() {
   const onAnalytics = pathname.startsWith('/analytics');
 
   return (
-    <nav aria-label="Main" className="flex gap-4 text-sm">
+    <nav
+      aria-label="Main"
+      className="border-border order-3 flex w-full gap-1 border-t pt-3 text-sm md:order-0 md:w-auto md:border-0 md:pt-0"
+    >
       <Link
         href="/employees"
         aria-current={onEmployees ? 'page' : undefined}
         className={cn(
-          'focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2',
+          'focus-visible:ring-ring rounded-full px-3 py-2 outline-none focus-visible:ring-2',
           onEmployees
-            ? 'text-foreground font-medium'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-secondary text-primary font-semibold'
+            : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
         )}
       >
         Employees
@@ -28,10 +31,10 @@ export function MainNav() {
         href="/analytics/salary"
         aria-current={onAnalytics ? 'page' : undefined}
         className={cn(
-          'focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2',
+          'focus-visible:ring-ring rounded-full px-3 py-2 outline-none focus-visible:ring-2',
           onAnalytics
-            ? 'text-foreground font-medium'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-secondary text-primary font-semibold'
+            : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
         )}
       >
         Salary Insights

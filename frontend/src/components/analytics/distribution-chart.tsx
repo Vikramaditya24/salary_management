@@ -15,13 +15,13 @@ export function DistributionChart({ bands }: { bands: Band[] }) {
       <div
         role="list"
         aria-label="Salary distribution by annual USD band"
-        className="border-border mt-4 flex min-h-52 items-end gap-2 overflow-x-auto border-b pb-2"
+        className="border-border mt-4 flex min-h-52 min-w-0 items-end gap-2 overflow-x-auto border-b pb-2"
       >
         {bands.map((band) => (
           <div
             role="listitem"
             key={band.lowerUsd}
-            className="flex min-w-14 flex-1 flex-col items-center gap-1 text-center"
+            className="flex min-w-12 flex-1 flex-col items-center gap-1 text-center"
             title={`${formatMoney(String(band.lowerUsd), 'USD')} to ${formatMoney(String(band.upperUsdExclusive), 'USD')}: ${formatCount(band.employeeCount)} employees (${band.percentage}%)`}
           >
             <span className="text-foreground text-xs font-semibold tabular-nums">

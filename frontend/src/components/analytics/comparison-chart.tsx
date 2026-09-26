@@ -77,7 +77,7 @@ export function ComparisonChart({
           <div
             role="listitem"
             key={row.label}
-            className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_auto] items-center gap-3 text-xs sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_auto]"
+            className="grid min-w-0 grid-cols-[minmax(0,5rem)_minmax(0,1fr)_auto] items-center gap-2 text-xs sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto] sm:gap-3"
           >
             <span className="truncate font-medium" title={row.label}>
               {row.label}
@@ -88,7 +88,7 @@ export function ComparisonChart({
                 style={{ width: `${Math.max(1, (value(row) / maximum) * 100)}%` }}
               />
             </div>
-            <span className="min-w-14 text-right font-semibold tabular-nums">
+            <span className="min-w-12 text-right font-semibold tabular-nums">
               {metric === 'count'
                 ? formatCount(row.count)
                 : formatMoney(row.averageSalaryUsd, 'USD')}

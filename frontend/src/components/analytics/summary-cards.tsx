@@ -7,9 +7,11 @@ interface SummaryCardsProps {
 
 function Card({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-border bg-card rounded-lg border px-4 py-3">
+    <div className="border-border bg-card min-w-0 rounded-2xl border px-4 py-4 shadow-sm sm:px-5">
       <p className="text-muted-foreground text-xs font-medium">{label}</p>
-      <p className="text-card-foreground mt-1 text-xl font-semibold">{value}</p>
+      <p className="text-card-foreground mt-2 text-lg font-semibold break-words tabular-nums sm:text-xl">
+        {value}
+      </p>
     </div>
   );
 }

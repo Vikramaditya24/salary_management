@@ -158,20 +158,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user: user!, signIn, signOut }}>
       <header className="border-border bg-card border-b">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <span className="font-semibold tracking-tight">
-            ACME <span className="text-muted-foreground">/ Salary</span>
-          </span>
-          <div className="flex items-center gap-5">
-            <MainNav />
-            <span className="text-muted-foreground hidden text-xs md:inline">{user!.email}</span>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="bg-accent text-primary flex size-9 items-center justify-center rounded-xl font-bold"
+            >
+              A
+            </span>
+            <span className="font-semibold tracking-tight">
+              ACME <span className="text-muted-foreground font-normal">/ Salary</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span
+              className="text-muted-foreground hidden max-w-52 truncate text-xs lg:inline"
+              title={user!.email}
+            >
+              {user!.email}
+            </span>
             <Button size="sm" variant="outline" onClick={signOut}>
               Sign out
             </Button>
           </div>
+          <MainNav />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+      <main className="app-surface mx-auto w-full max-w-7xl min-w-0 flex-1 px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
+        {children}
+      </main>
     </AuthContext.Provider>
   );
 }

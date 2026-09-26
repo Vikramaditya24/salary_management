@@ -90,9 +90,12 @@ export function EmployeeListPage() {
   const meta = list.data?.meta;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-[#e9fff4] p-5 sm:p-8">
         <div>
+          <p className="text-primary mb-2 text-xs font-bold tracking-[0.18em] uppercase">
+            People directory
+          </p>
           <h1 className="text-2xl font-semibold">Employees</h1>
           <p className="text-muted-foreground mt-1 text-sm" aria-live="polite">
             {meta
@@ -136,7 +139,7 @@ export function EmployeeListPage() {
           aria-busy={list.isFetching}
           className={cn('flex flex-col gap-4 transition-opacity', list.isFetching && 'opacity-60')}
         >
-          <div className="border-border rounded-lg border">
+          <div className="employee-directory border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
             <EmployeeTable
               employees={employees}
               sortBy={state.sortBy}

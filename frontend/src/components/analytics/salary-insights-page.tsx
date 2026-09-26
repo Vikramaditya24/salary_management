@@ -35,7 +35,7 @@ function DashboardSkeleton() {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-border flex flex-col gap-3 rounded-lg border p-4">
+    <section className="border-border bg-card flex min-w-0 flex-col gap-3 rounded-2xl border p-4 shadow-sm sm:p-6">
       <h2 className="text-base font-semibold">{title}</h2>
       {children}
     </section>
@@ -61,8 +61,11 @@ export function SalaryInsightsPage() {
   const data = analytics.data;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex min-w-0 flex-col gap-6">
+      <div className="rounded-3xl bg-[#e9fff4] p-5 sm:p-8">
+        <p className="text-primary mb-2 text-xs font-bold tracking-[0.18em] uppercase">
+          Compensation overview
+        </p>
         <h1 className="text-2xl font-semibold">Salary Insights</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Salary analytics are normalized to USD using the organization&apos;s static exchange-rate

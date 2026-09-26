@@ -41,7 +41,7 @@ export function Pagination({ meta, count, onPageChange, onPageSizeChange }: Pagi
         Showing {formatCount(first)}–{formatCount(last)} of {formatCount(meta.totalItems)}
       </p>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 text-sm">
           <label htmlFor={sizeId} className="text-muted-foreground">
             Rows per page
@@ -60,7 +60,10 @@ export function Pagination({ meta, count, onPageChange, onPageSizeChange }: Pagi
           </Select>
         </div>
 
-        <nav aria-label="Pagination" className="flex items-center gap-1">
+        <nav
+          aria-label="Pagination"
+          className="flex max-w-full items-center gap-1 overflow-x-auto pb-1"
+        >
           <Button
             type="button"
             variant="outline"

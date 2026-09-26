@@ -40,12 +40,12 @@ export function HealthStatus() {
   }, []);
 
   if (state.phase === 'loading') {
-    return <p className="text-sm text-muted-foreground">Checking API connection…</p>;
+    return <p className="text-muted-foreground text-sm">Checking API connection…</p>;
   }
 
   if (state.phase === 'error') {
     return (
-      <p className="text-sm text-destructive">
+      <p className="text-destructive text-sm">
         Could not reach the API at {apiUrl} ({state.message}). Is the backend running?
       </p>
     );

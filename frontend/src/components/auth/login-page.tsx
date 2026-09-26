@@ -26,11 +26,21 @@ export function LoginPage() {
     }
   }
   return (
-    <main className="bg-muted/40 flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="border-border bg-card w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <main className="flex min-h-screen items-center justify-center bg-[#e9fff4] px-4 py-12">
+      <div className="border-border bg-card w-full max-w-md rounded-3xl border p-6 shadow-xl shadow-[#004e43]/10 sm:p-9">
         <div className="mb-8">
-          <p className="text-muted-foreground text-sm font-semibold tracking-wide">ACME / SALARY</p>
-          <h1 className="mt-3 text-2xl font-semibold">HR Manager sign in</h1>
+          <span
+            aria-hidden="true"
+            className="bg-accent text-primary mb-6 flex size-12 items-center justify-center rounded-2xl text-lg font-bold"
+          >
+            A
+          </span>
+          <p className="text-primary text-xs font-bold tracking-[0.18em] uppercase">
+            ACME / Salary
+          </p>
+          <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight">
+            HR Manager sign in
+          </h1>
           <p className="text-muted-foreground mt-2 text-sm">
             Manage employee records and explore compensation.
           </p>
