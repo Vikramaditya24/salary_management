@@ -37,7 +37,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const EARLIEST_HIRE_DATE = '1900-01-01';
 
-function isRealCalendarDate(value: string): boolean {
+export function isRealCalendarDate(value: string): boolean {
   const match = ISO_DATE_RE.exec(value);
   if (!match) return false;
   const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];

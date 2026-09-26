@@ -68,7 +68,10 @@ describe('EmployeeListPage', () => {
     setSearch(
       'q=ada&country=DE&department=ENGINEERING&jobTitle=Software+Engineer+I&status=ALL&sortBy=hireDate&sortOrder=desc&page=2&pageSize=50',
     );
-    const fetchMock = listApi([ada], makeMeta({ page: 2, pageSize: 50, totalItems: 51, totalPages: 2 }));
+    const fetchMock = listApi(
+      [ada],
+      makeMeta({ page: 2, pageSize: 50, totalItems: 51, totalPages: 2 }),
+    );
     renderWithProviders(<EmployeeListPage />);
     await screen.findByRole('link', { name: 'Ada Lovelace' });
 
@@ -242,7 +245,9 @@ describe('EmployeeListPage', () => {
 
   it('keeps the dialog open and explains when deactivation fails', async () => {
     listApi([ada], undefined, (req) =>
-      req.method === 'DELETE' ? apiError(404, 'EMPLOYEE_NOT_FOUND', 'Employee not found.') : undefined,
+      req.method === 'DELETE'
+        ? apiError(404, 'EMPLOYEE_NOT_FOUND', 'Employee not found.')
+        : undefined,
     );
     renderWithProviders(<EmployeeListPage />);
     fireEvent.click(await screen.findByRole('button', { name: 'Deactivate Ada Lovelace' }));
@@ -258,7 +263,9 @@ describe('EmployeeListPage', () => {
   it('offers reactivation, not deactivation, for terminated employees', async () => {
     const terminated = makeEmployee({ employmentStatus: 'TERMINATED' });
     const fetchMock = listApi([terminated], undefined, (req) =>
-      req.method === 'PATCH' ? { body: { data: { ...terminated, employmentStatus: 'ACTIVE' } } } : undefined,
+      req.method === 'PATCH'
+        ? { body: { data: { ...terminated, employmentStatus: 'ACTIVE' } } }
+        : undefined,
     );
     renderWithProviders(<EmployeeListPage />);
 

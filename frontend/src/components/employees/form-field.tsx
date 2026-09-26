@@ -42,12 +42,12 @@ export function FormField({ id, label, required, hint, error, children }: FormFi
         'aria-required': required ? true : undefined,
       })}
       {hint && (
-        <p id={hintId} className="text-xs text-muted-foreground">
+        <p id={hintId} className="text-muted-foreground text-xs">
           {hint}
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-sm text-destructive">
+        <p id={errorId} className="text-destructive text-sm">
           {error}
         </p>
       )}

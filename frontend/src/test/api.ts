@@ -64,7 +64,16 @@ export function makeEmployee(overrides: Partial<Employee> = {}): Employee {
 export function makeDetail(overrides: Partial<EmployeeDetail> = {}): EmployeeDetail {
   return {
     ...makeEmployee(),
-    currentSalary: { amount: '128450.00', currencyCode: 'EUR', effectiveDate: '2024-01-01' },
+    currentSalary: {
+      id: '22222222-2222-4222-8222-222222222222',
+      amount: '128450.00',
+      currencyCode: 'EUR',
+      effectiveDate: '2024-01-01',
+      endDate: null,
+      createdBy: 'HR Manager',
+      createdAt: '2024-01-01T00:00:00.000Z',
+    },
+    salaryHistory: [],
     ...overrides,
   };
 }

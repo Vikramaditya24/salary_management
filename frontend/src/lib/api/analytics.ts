@@ -13,6 +13,11 @@ export interface SalaryOverallStats {
   averageSalaryUsd: string | null;
   minSalaryUsd: string | null;
   maxSalaryUsd: string | null;
+  medianSalaryUsd: string | null;
+  activeHeadcount: number;
+  terminatedHeadcount: number;
+  totalHeadcount: number;
+  withoutSalaryCount: number;
 }
 
 export interface CountryHeadcount {
@@ -38,10 +43,19 @@ export interface SalaryAnalytics {
   overall: SalaryOverallStats;
   headcountByDepartment: DepartmentHeadcount[];
   headcountByCountry: CountryHeadcount[];
-}
-
-interface SalaryAnalyticsEnvelope {
-  data: SalaryAnalytics;
+  salaryByRole: {
+    jobTitle: string;
+    employeeCount: number;
+    averageSalaryUsd: string;
+    minSalaryUsd: string;
+    maxSalaryUsd: string;
+  }[];
+  distribution: {
+    lowerUsd: number;
+    upperUsdExclusive: number;
+    employeeCount: number;
+    percentage: number;
+  }[];
 }
 
 export interface SalaryAnalyticsFilters {
@@ -57,9 +71,15 @@ export function toAnalyticsQuery(filters: SalaryAnalyticsFilters): string {
   return params.toString();
 }
 
-export async function getSalaryAnalytics(query: string, signal?: AbortSignal): Promise<SalaryAnalytics> {
-  const envelope = await apiRequest<SalaryAnalytics>(`/analytics/salary${query ? `?${query}` : ''}`, {
-    signal,
-  });
-  return envelope;
+export async function getSalaryAnalytics(
+  query: string,
+  signal?: AbortSignal,
+): Promise<SalaryAnalytics> {
+  const envelope = await apiRequest<{ data: SalaryAnalytics }>(
+    `/analytics/salary${query ? `?${query}` : ''}`,
+    {
+      signal,
+    },
+  );
+  return envelope.data;
 }

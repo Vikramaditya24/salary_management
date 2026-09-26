@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, apiRequest } from './client';
+import { ApiError, apiRequest, setBearerToken, setUnauthorizedHandler } from './client';
 
 function respond(status: number, body: unknown) {
   const fetchMock = vi.fn().mockResolvedValue({
@@ -13,7 +13,11 @@ function respond(status: number, body: unknown) {
 }
 
 describe('apiRequest', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    setBearerToken(null);
+    setUnauthorizedHandler(null);
+  });
 
   it('only sends Content-Type when there is a body', async () => {
     const fetchMock = respond(200, { data: {} });
@@ -73,5 +77,19 @@ describe('apiRequest', () => {
       status: 0,
       code: 'NETWORK_ERROR',
     });
+  });
+  it('attaches bearer tokens and signals session expiry on protected 401', async () => {
+    const fetchMock = respond(401, {
+      error: { code: 'UNAUTHORIZED', message: 'Authentication required.' },
+    });
+    const onUnauthorized = vi.fn();
+    setBearerToken('secret-token');
+    setUnauthorizedHandler(onUnauthorized);
+    await expect(apiRequest('/employees')).rejects.toMatchObject({
+      status: 401,
+      code: 'UNAUTHORIZED',
+    });
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer secret-token');
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 });

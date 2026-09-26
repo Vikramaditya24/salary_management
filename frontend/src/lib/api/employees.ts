@@ -50,15 +50,19 @@ export interface Employee {
   updatedAt: string;
 }
 
-export interface CurrentSalary {
-  /** Exact decimal string, e.g. "128450.00". */
+export interface SalaryRecord {
+  id: string;
   amount: string;
   currencyCode: string;
   effectiveDate: string;
+  endDate: string | null;
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface EmployeeDetail extends Employee {
-  currentSalary: CurrentSalary | null;
+  currentSalary: SalaryRecord | null;
+  salaryHistory: SalaryRecord[];
 }
 
 export interface PageMeta {

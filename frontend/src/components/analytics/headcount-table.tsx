@@ -1,4 +1,12 @@
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { formatCount } from '@/lib/format';
 
 interface HeadcountRow {
@@ -15,7 +23,7 @@ interface HeadcountTableProps {
 
 export function HeadcountTable({ caption, groupLabel, rows, emptyMessage }: HeadcountTableProps) {
   if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
+    return <p className="text-muted-foreground text-sm">{emptyMessage}</p>;
   }
 
   return (

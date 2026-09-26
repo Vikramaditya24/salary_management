@@ -110,10 +110,7 @@ export function createEmployeeService(
    * adapters — so when it is absent we ask the database directly instead of
    * guessing.
    */
-  async function classifyUniqueViolation(
-    error: unknown,
-    email?: string,
-  ): Promise<UniqueViolation> {
+  async function classifyUniqueViolation(error: unknown, email?: string): Promise<UniqueViolation> {
     const fields = uniqueViolationFields(error);
     if (fields.some((f) => f.includes('employee_number') || f.includes('employeenumber'))) {
       return 'employeeNumber';

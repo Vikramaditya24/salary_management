@@ -15,6 +15,10 @@ export const router = {
 };
 
 let currentSearch = '';
+let currentPath = '/employees';
+export function setPathname(path: string) {
+  currentPath = path;
+}
 let cached: { search: string; params: URLSearchParams } | null = null;
 
 export function setSearch(search: string) {
@@ -24,12 +28,13 @@ export function setSearch(search: string) {
 export function resetNavigation() {
   Object.values(router).forEach((fn) => fn.mockReset());
   currentSearch = '';
+  currentPath = '/employees';
   cached = null;
 }
 
 export const navigationModule = {
   useRouter: () => router,
-  usePathname: () => '/employees',
+  usePathname: () => currentPath,
   // Like Next, return a stable object until the URL changes.
   useSearchParams: () => {
     if (!cached || cached.search !== currentSearch) {

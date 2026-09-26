@@ -56,7 +56,10 @@ let app: FastifyInstance;
 
 beforeEach(async () => {
   stub = createStub();
-  app = await buildApp({ employeeService: stub as unknown as EmployeeService });
+  app = await buildApp({
+    testOnlyDisableAuth: true,
+    employeeService: stub as unknown as EmployeeService,
+  });
 });
 
 afterEach(async () => {
@@ -122,7 +125,12 @@ describe('GET /employees', () => {
 
 describe('GET /employees/filter-options', () => {
   it('is routed to the options endpoint, not treated as an :id', async () => {
-    stub.getFilterOptions.mockResolvedValue({ countries: [], departments: [], jobTitles: [], statuses: [] });
+    stub.getFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+      statuses: [],
+    });
     const response = await app.inject({ method: 'GET', url: '/employees/filter-options' });
     expect(response.statusCode).toBe(200);
     expect(stub.getById).not.toHaveBeenCalled();
@@ -253,7 +261,9 @@ describe('POST /employees', () => {
   });
 
   it('returns 422 when the service rejects a business rule', async () => {
-    stub.create.mockRejectedValue(new AppError(422, 'HIRE_DATE_IN_FUTURE', 'Hire date cannot be in the future.'));
+    stub.create.mockRejectedValue(
+      new AppError(422, 'HIRE_DATE_IN_FUTURE', 'Hire date cannot be in the future.'),
+    );
     const response = await app.inject({ method: 'POST', url: '/employees', payload: validBody });
     expect(response.statusCode).toBe(422);
     expect(response.json().error.code).toBe('HIRE_DATE_IN_FUTURE');
@@ -333,7 +343,14 @@ describe('error masking', () => {
     expect(body.error.code).toBe('INTERNAL_ERROR');
     expect(body.error.message).toBe('An unexpected error occurred.');
     expect(typeof body.error.requestId).toBe('string');
-    for (const leaked of ['ECONNREFUSED', 'postgres://', 'hunter2', 'db.internal', 'stack', ' at ']) {
+    for (const leaked of [
+      'ECONNREFUSED',
+      'postgres://',
+      'hunter2',
+      'db.internal',
+      'stack',
+      ' at ',
+    ]) {
       expect(response.body.includes(leaked)).toBe(false);
     }
   });

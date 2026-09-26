@@ -20,16 +20,21 @@ export const employeeSelect = {
 } satisfies Prisma.EmployeeSelect;
 
 /**
- * Detail view = profile + the single current salary record (endDate IS NULL).
- * Full salary history belongs to the salary-history phase, not here.
+ * Detail view = profile and salary history for one employee, newest first.
  */
 export const employeeDetailSelect = {
   ...employeeSelect,
   salaryRecords: {
-    where: { endDate: null },
-    orderBy: { effectiveDate: 'desc' },
-    take: 1,
-    select: { amount: true, currencyCode: true, effectiveDate: true },
+    orderBy: [{ effectiveDate: 'desc' }, { id: 'desc' }],
+    select: {
+      id: true,
+      amount: true,
+      currencyCode: true,
+      effectiveDate: true,
+      endDate: true,
+      createdBy: true,
+      createdAt: true,
+    },
   },
 } satisfies Prisma.EmployeeSelect;
 

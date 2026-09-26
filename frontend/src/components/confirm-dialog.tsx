@@ -84,12 +84,12 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         onKeyDown={handleKeyDown}
-        className="w-full max-w-md rounded-lg border border-border bg-card p-6 text-card-foreground shadow-xl"
+        className="border-border bg-card text-card-foreground w-full max-w-md rounded-lg border p-6 shadow-xl"
       >
         <h2 id={titleId} className="text-lg font-semibold">
           {title}
         </h2>
-        <p id={descriptionId} className="mt-2 text-sm text-muted-foreground">
+        <p id={descriptionId} className="text-muted-foreground mt-2 text-sm">
           {description}
         </p>
         {error && (

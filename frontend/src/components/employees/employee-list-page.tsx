@@ -7,7 +7,12 @@ import { Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getFilterOptions, listEmployees, type Employee, type SortField } from '@/lib/api/employees';
+import {
+  getFilterOptions,
+  listEmployees,
+  type Employee,
+  type SortField,
+} from '@/lib/api/employees';
 import {
   clearFilters,
   hasActiveFilters,
@@ -47,7 +52,13 @@ export function EmployeeListPage() {
   const state = parseListState(searchParams);
   const apiQuery = toApiQuery(state);
 
-  const fetchList = useCallback((signal: AbortSignal) => listEmployees(apiQuery, signal), [apiQuery]);
+  // The serialized URL is stable even though useSearchParams returns a new object.
+  /* eslint-disable react-hooks/preserve-manual-memoization -- fetch identity controls request cancellation; URL serialization is stable. */
+  const fetchList = useCallback(
+    (signal: AbortSignal) => listEmployees(apiQuery, signal),
+    [apiQuery],
+  );
+  /* eslint-enable react-hooks/preserve-manual-memoization */
   const list = useApiQuery(fetchList);
   const options = useApiQuery(getFilterOptions);
 
@@ -83,7 +94,7 @@ export function EmployeeListPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Employees</h1>
-          <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">
+          <p className="text-muted-foreground mt-1 text-sm" aria-live="polite">
             {meta
               ? `${formatCount(meta.totalItems)} ${filtered ? 'matching ' : ''}${
                   meta.totalItems === 1 ? 'employee' : 'employees'
@@ -125,7 +136,7 @@ export function EmployeeListPage() {
           aria-busy={list.isFetching}
           className={cn('flex flex-col gap-4 transition-opacity', list.isFetching && 'opacity-60')}
         >
-          <div className="rounded-lg border border-border">
+          <div className="border-border rounded-lg border">
             <EmployeeTable
               employees={employees}
               sortBy={state.sortBy}
@@ -205,9 +216,9 @@ function EmptyState({
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-14 text-center">
+    <div className="border-border flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="max-w-sm text-sm text-muted-foreground">{body}</p>
+      <p className="text-muted-foreground max-w-sm text-sm">{body}</p>
       {action}
     </div>
   );

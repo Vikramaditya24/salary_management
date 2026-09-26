@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -69,20 +77,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={item.id}
             role={item.variant === 'error' ? 'alert' : 'status'}
             className={cn(
-              'pointer-events-auto flex w-full items-start gap-3 rounded-lg border bg-card p-4 text-sm text-card-foreground shadow-lg',
+              'bg-card text-card-foreground pointer-events-auto flex w-full items-start gap-3 rounded-lg border p-4 text-sm shadow-lg',
               item.variant === 'error' && 'border-destructive/60',
               item.variant === 'success' && 'border-green-600/60',
             )}
           >
             <div className="flex-1">
               <p className="font-medium">{item.title}</p>
-              {item.description && <p className="mt-1 text-muted-foreground">{item.description}</p>}
+              {item.description && <p className="text-muted-foreground mt-1">{item.description}</p>}
             </div>
             <button
               type="button"
               onClick={() => dismiss(item.id)}
               aria-label="Dismiss notification"
-              className="rounded-sm p-0.5 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-sm p-0.5 outline-none focus-visible:ring-2"
             >
               <X className="size-4" />
             </button>

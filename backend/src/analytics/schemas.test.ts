@@ -62,9 +62,9 @@ describe('parseSalaryInsightsQuery', () => {
   });
 
   it('rejects a repeated single-value parameter instead of picking one', () => {
-    expect(
-      validationFields(() => parseSalaryInsightsQuery({ country: ['DE', 'US'] })),
-    ).toContain('country');
+    expect(validationFields(() => parseSalaryInsightsQuery({ country: ['DE', 'US'] }))).toContain(
+      'country',
+    );
   });
 
   it('rejects unknown query parameters rather than silently ignoring them', () => {

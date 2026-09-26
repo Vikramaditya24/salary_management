@@ -71,7 +71,12 @@ describe('todayIso', () => {
 describe('toCreateInput / diffEmployee', () => {
   it('trims text and lower-cases the email like the server does', () => {
     expect(
-      toCreateInput({ ...valid, fullName: '  Ada Lovelace ', email: ' ADA@Acme.com ', countryCode: 'de' }),
+      toCreateInput({
+        ...valid,
+        fullName: '  Ada Lovelace ',
+        email: ' ADA@Acme.com ',
+        countryCode: 'de',
+      }),
     ).toEqual(valid);
   });
 

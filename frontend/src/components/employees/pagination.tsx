@@ -37,7 +37,7 @@ export function Pagination({ meta, count, onPageChange, onPageSizeChange }: Pagi
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         Showing {formatCount(first)}–{formatCount(last)} of {formatCount(meta.totalItems)}
       </p>
 
@@ -73,7 +73,7 @@ export function Pagination({ meta, count, onPageChange, onPageSizeChange }: Pagi
           </Button>
           {pageWindow(meta.page, meta.totalPages).map((entry, index) =>
             entry === 'gap' ? (
-              <span key={`gap-${index}`} aria-hidden="true" className="px-1 text-muted-foreground">
+              <span key={`gap-${index}`} aria-hidden="true" className="text-muted-foreground px-1">
                 …
               </span>
             ) : (

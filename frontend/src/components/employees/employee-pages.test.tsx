@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 
-import { apiError, filterOptions, makeDetail, makeEmployee, mockApi, type MockRequest } from '@/test/api';
+import {
+  apiError,
+  filterOptions,
+  makeDetail,
+  makeEmployee,
+  mockApi,
+  type MockRequest,
+} from '@/test/api';
 import { resetNavigation, router } from '@/test/navigation';
 import { renderWithProviders } from '@/test/render';
 
@@ -13,11 +20,14 @@ vi.mock('next/navigation', async () => (await import('@/test/navigation')).navig
 vi.mock('next/link', async () => await import('@/test/next-link'));
 
 const detail = makeDetail();
-const withOptions = (handler: (req: MockRequest) => { status?: number; body: unknown } | undefined) =>
+const withOptions = (
+  handler: (req: MockRequest) => { status?: number; body: unknown } | undefined,
+) =>
   mockApi((req) =>
     req.url.pathname === '/employees/filter-options'
       ? { body: { data: filterOptions } }
-      : (handler(req) ?? apiError(500, 'UNEXPECTED', `Unhandled ${req.method} ${req.url.pathname}`)),
+      : (handler(req) ??
+        apiError(500, 'UNEXPECTED', `Unhandled ${req.method} ${req.url.pathname}`)),
   );
 
 function fillCreateForm() {
@@ -25,7 +35,9 @@ function fillCreateForm() {
   fireEvent.change(screen.getByLabelText(/Email/), { target: { value: 'ADA@acme.com' } });
   fireEvent.change(screen.getByLabelText(/Country/), { target: { value: 'DE' } });
   fireEvent.change(screen.getByLabelText(/Department/), { target: { value: 'ENGINEERING' } });
-  fireEvent.change(screen.getByLabelText(/Job title/), { target: { value: 'Software Engineer I' } });
+  fireEvent.change(screen.getByLabelText(/Job title/), {
+    target: { value: 'Software Engineer I' },
+  });
   fireEvent.change(screen.getByLabelText(/Hire date/), { target: { value: '2021-03-05' } });
 }
 
@@ -131,7 +143,9 @@ describe('employee pages', () => {
     it('says so when the employee does not exist', async () => {
       withOptions(() => apiError(404, 'EMPLOYEE_NOT_FOUND', 'Employee not found.'));
       renderWithProviders(<EditEmployeePage id={detail.id} />);
-      expect(await screen.findByRole('heading', { name: 'Employee not found' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Employee not found' }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -141,17 +155,42 @@ describe('employee pages', () => {
       renderWithProviders(<EmployeeDetailPage id={detail.id} />);
 
       expect(screen.getByRole('status')).toHaveTextContent(/loading employee/i);
-      expect(await screen.findByRole('heading', { name: 'Ada Lovelace', level: 1 })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Ada Lovelace', level: 1 }),
+      ).toBeInTheDocument();
       expect(screen.getByText('EMP-000001')).toBeInTheDocument();
       expect(screen.getByText('€128,450.00')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'ada@acme.com' })).toHaveAttribute(
         'href',
         'mailto:ada@acme.com',
       );
+      expect(screen.getByRole('link', { name: 'Change salary' })).toHaveAttribute(
+        'href',
+        `/employees/${detail.id}/salary`,
+      );
       expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute(
         'href',
         `/employees/${detail.id}/edit`,
       );
+    });
+
+    it('renders previous salary intervals from the detail response', async () => {
+      const previous = {
+        id: '33333333-3333-4333-8333-333333333333',
+        amount: '100000.00',
+        currencyCode: 'EUR',
+        effectiveDate: '2021-03-05',
+        endDate: '2024-01-01',
+        createdBy: 'HR Manager',
+        createdAt: '2021-03-05T00:00:00.000Z',
+      };
+      withOptions(() => ({
+        body: { data: makeDetail({ salaryHistory: [detail.currentSalary!, previous] }) },
+      }));
+      renderWithProviders(<EmployeeDetailPage id={detail.id} />);
+      const table = await screen.findByRole('table');
+      expect(within(table).getByText('€100,000.00')).toBeInTheDocument();
+      expect(within(table).getByText('Current')).toBeInTheDocument();
     });
 
     it('handles an employee without a salary record', async () => {
@@ -167,7 +206,9 @@ describe('employee pages', () => {
           terminated = true;
           return { body: { data: { ...makeEmployee(), employmentStatus: 'TERMINATED' } } };
         }
-        return { body: { data: makeDetail({ employmentStatus: terminated ? 'TERMINATED' : 'ACTIVE' }) } };
+        return {
+          body: { data: makeDetail({ employmentStatus: terminated ? 'TERMINATED' : 'ACTIVE' }) },
+        };
       });
       renderWithProviders(<EmployeeDetailPage id={detail.id} />);
 
@@ -177,15 +218,22 @@ describe('employee pages', () => {
       const dialog = await screen.findByRole('alertdialog');
       fireEvent.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
 
-      expect(await screen.findByRole('button', { name: 'Reactivate Ada Lovelace' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Reactivate Ada Lovelace' }),
+      ).toBeInTheDocument();
       expect(screen.getAllByText('Terminated').length).toBeGreaterThan(0);
     });
 
     it('shows a not-found state for an unknown or malformed id', async () => {
       withOptions(() => apiError(400, 'VALIDATION_ERROR', 'id must be a valid UUID.'));
       renderWithProviders(<EmployeeDetailPage id="nope" />);
-      expect(await screen.findByRole('heading', { name: 'Employee not found' })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Back to employees' })).toHaveAttribute('href', '/employees');
+      expect(
+        await screen.findByRole('heading', { name: 'Employee not found' }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Back to employees' })).toHaveAttribute(
+        'href',
+        '/employees',
+      );
     });
 
     it('offers a retry on a server error', async () => {

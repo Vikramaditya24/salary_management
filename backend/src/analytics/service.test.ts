@@ -56,12 +56,30 @@ describe('getSalaryInsights', () => {
         { department: 'ENGINEERING', employee_count: 300, average_usd: decimal(120_000) },
       ])
       .mockResolvedValueOnce([
-        { country_code: 'US', country_name: 'United States', employee_count: 200, average_usd: decimal(130_000) },
-      ]);
+        {
+          country_code: 'US',
+          country_name: 'United States',
+          employee_count: 200,
+          average_usd: decimal(130_000),
+        },
+      ])
+      .mockResolvedValueOnce([
+        { headcount: 510, terminated_headcount: 40, median_usd: decimal(99000) },
+      ])
+      .mockResolvedValueOnce([
+        {
+          job_title: 'Engineer',
+          employee_count: 300,
+          average_usd: decimal(120000),
+          min_usd: decimal(50000),
+          max_usd: decimal(220000),
+        },
+      ])
+      .mockResolvedValueOnce([{ lower_usd: 100000n, employee_count: 300 }]);
 
     const result = await service.getSalaryInsights(baseQuery);
 
-    expect(mocks.queryRaw).toHaveBeenCalledTimes(3);
+    expect(mocks.queryRaw).toHaveBeenCalledTimes(6);
     expect(mocks.country.findUnique).not.toHaveBeenCalled();
     expect(result.currency).toBe('USD');
     expect(result.filters).toEqual({ country: null, department: null });
@@ -71,12 +89,28 @@ describe('getSalaryInsights', () => {
       averageSalaryUsd: '100000.00',
       minSalaryUsd: '40000.00',
       maxSalaryUsd: '250000.00',
+      medianSalaryUsd: '99000.00',
+      activeHeadcount: 510,
+      terminatedHeadcount: 40,
+      totalHeadcount: 550,
+      withoutSalaryCount: 10,
     });
-    expect(result.byDepartment).toEqual([
+    expect(result.headcountByDepartment).toEqual([
       { department: 'ENGINEERING', employeeCount: 300, averageSalaryUsd: '120000.00' },
     ]);
-    expect(result.byCountry).toEqual([
-      { country: { code: 'US', name: 'United States' }, employeeCount: 200, averageSalaryUsd: '130000.00' },
+    expect(result.salaryByRole?.[0]?.jobTitle).toBe('Engineer');
+    expect(result.distribution?.[0]).toEqual({
+      lowerUsd: 100000,
+      upperUsdExclusive: 125000,
+      employeeCount: 300,
+      percentage: 60,
+    });
+    expect(result.headcountByCountry).toEqual([
+      {
+        country: { code: 'US', name: 'United States' },
+        employeeCount: 200,
+        averageSalaryUsd: '130000.00',
+      },
     ]);
   });
 
@@ -118,9 +152,16 @@ describe('getSalaryInsights', () => {
       averageSalaryUsd: null,
       minSalaryUsd: null,
       maxSalaryUsd: null,
+      medianSalaryUsd: null,
+      activeHeadcount: 0,
+      terminatedHeadcount: 0,
+      totalHeadcount: 0,
+      withoutSalaryCount: 0,
     });
-    expect(result.byDepartment).toEqual([]);
-    expect(result.byCountry).toEqual([]);
+    expect(result.headcountByDepartment).toEqual([]);
+    expect(result.salaryByRole).toEqual([]);
+    expect(result.distribution).toEqual([]);
+    expect(result.headcountByCountry).toEqual([]);
   });
 
   it('lets unexpected errors through unchanged (the HTTP layer masks them as 500)', async () => {

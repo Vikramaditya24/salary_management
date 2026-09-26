@@ -16,8 +16,10 @@ export function MainNav() {
         href="/employees"
         aria-current={onEmployees ? 'page' : undefined}
         className={cn(
-          'rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          onEmployees ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
+          'focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2',
+          onEmployees
+            ? 'text-foreground font-medium'
+            : 'text-muted-foreground hover:text-foreground',
         )}
       >
         Employees
@@ -26,8 +28,10 @@ export function MainNav() {
         href="/analytics/salary"
         aria-current={onAnalytics ? 'page' : undefined}
         className={cn(
-          'rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          onAnalytics ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
+          'focus-visible:ring-ring rounded-sm outline-none focus-visible:ring-2',
+          onAnalytics
+            ? 'text-foreground font-medium'
+            : 'text-muted-foreground hover:text-foreground',
         )}
       >
         Salary Insights

@@ -4,11 +4,18 @@ import { useCallback, useState, type ReactNode } from 'react';
 
 import { QueryError } from '@/components/employees/query-error';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getSalaryAnalytics, toAnalyticsQuery, type SalaryAnalyticsFilters } from '@/lib/api/analytics';
+import {
+  getSalaryAnalytics,
+  toAnalyticsQuery,
+  type SalaryAnalyticsFilters,
+} from '@/lib/api/analytics';
+import { getReference } from '@/lib/api/reference';
+import { formatDepartment } from '@/lib/format';
 import { useApiQuery } from '@/lib/use-api-query';
 import { cn } from '@/lib/utils';
 
-import { HeadcountTable } from './headcount-table';
+import { ComparisonChart } from './comparison-chart';
+import { DistributionChart } from './distribution-chart';
 import { SalaryFilters } from './salary-filters';
 import { SummaryCards } from './summary-cards';
 
@@ -28,7 +35,7 @@ function DashboardSkeleton() {
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-3 rounded-lg border border-border p-4">
+    <section className="border-border flex flex-col gap-3 rounded-lg border p-4">
       <h2 className="text-base font-semibold">{title}</h2>
       {children}
     </section>
@@ -38,10 +45,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export function SalaryInsightsPage() {
   const [filters, setFilters] = useState<SalaryAnalyticsFilters>({});
 
-  // A separate, always-unfiltered request drives the filter dropdown options, so the choices
-  // available don't shrink to nothing once a filter narrows the main result.
-  const fetchBaseline = useCallback((signal: AbortSignal) => getSalaryAnalytics('', signal), []);
-  const baseline = useApiQuery(fetchBaseline);
+  const reference = useApiQuery(getReference);
 
   const query = toAnalyticsQuery(filters);
   const fetchAnalytics = useCallback(
@@ -50,21 +54,17 @@ export function SalaryInsightsPage() {
   );
   const analytics = useApiQuery(fetchAnalytics);
 
-  const countryOptions = (baseline.data?.headcountByCountry ?? [])
-    .map((row) => ({ name: row.country.name, code: row.country.code }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const departmentOptions = (baseline.data?.headcountByDepartment ?? [])
-    .map((row) => row.department)
-    .sort((a, b) => a.localeCompare(b));
+  const countryOptions = reference.data?.countries ?? [];
+  const departmentOptions = reference.data?.departments ?? [];
 
   const isFiltered = Boolean(filters.country || filters.department);
   const data = analytics.data;
-console.log("Data",analytics)
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold">Salary Insights</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-1 text-sm">
           Salary analytics are normalized to USD using the organization&apos;s static exchange-rate
           table. Figures are not live foreign-exchange rates.
         </p>
@@ -78,53 +78,75 @@ console.log("Data",analytics)
         onClear={() => setFilters({})}
       />
 
+      {reference.error && <QueryError error={reference.error} onRetry={reference.refetch} />}
       {analytics.error ? (
         <QueryError error={analytics.error} onRetry={analytics.refetch} />
       ) : analytics.isInitialLoading || !data ? (
         <DashboardSkeleton />
-      ) : data.overall.employeeCount === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border px-6 py-14 text-center">
-          <h2 className="text-lg font-semibold">
-            {isFiltered ? 'No employees match your filters' : 'No salary data yet'}
-          </h2>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            {isFiltered
-              ? 'Try a different country or department, or clear your filters to see everyone.'
-              : 'Salary insights will appear once employees with salary data are added.'}
-          </p>
-        </div>
       ) : (
         <div
           aria-busy={analytics.isFetching}
-          className={cn('flex flex-col gap-6 transition-opacity', analytics.isFetching && 'opacity-60')}
+          className={cn(
+            'flex flex-col gap-6 transition-opacity',
+            analytics.isFetching && 'opacity-60',
+          )}
         >
           <SummaryCards overall={data.overall} />
+          {data.overall.employeeCount === 0 && (
+            <div className="border-border rounded-lg border border-dashed p-8 text-center">
+              <h2 className="font-semibold">
+                {isFiltered ? 'No paid employees match your filters' : 'No salary data yet'}
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm">
+                {isFiltered
+                  ? 'Adjust the country or department to explore another group.'
+                  : 'Add a salary to an active employee to populate compensation insights.'}
+              </p>
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Section title="Headcount by Country">
-              <HeadcountTable
-                caption="Number of employees per country."
-                groupLabel="Country"
-                rows={data.headcountByCountry.map((row) => ({
-                  label: row.country.name,
-                  count: row.employeeCount,
-                }))}
-                emptyMessage="No country headcount data available."
-              />
-            </Section>
-
-            <Section title="Headcount by Department">
-              <HeadcountTable
-                caption="Number of employees per department."
-                groupLabel="Department"
-                rows={data.headcountByDepartment.map((row) => ({
-                  label: row.department,
-                  count: row.employeeCount,
-                }))}
-                emptyMessage="No department headcount data available."
-              />
-            </Section>
-          </div>
+          {data.overall.employeeCount > 0 && (
+            <>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Section title="By country">
+                  <ComparisonChart
+                    label="Countries"
+                    rows={data.headcountByCountry.map((row) => ({
+                      label: row.country.name,
+                      count: row.employeeCount,
+                      averageSalaryUsd: row.averageSalaryUsd,
+                    }))}
+                  />
+                </Section>
+                <Section title="By department">
+                  <ComparisonChart
+                    label="Departments"
+                    rows={data.headcountByDepartment.map((row) => ({
+                      label: formatDepartment(row.department),
+                      count: row.employeeCount,
+                      averageSalaryUsd: row.averageSalaryUsd,
+                    }))}
+                  />
+                </Section>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Section title="By role">
+                  <ComparisonChart
+                    label="Roles"
+                    initialMetric="salary"
+                    rows={data.salaryByRole.map((row) => ({
+                      label: row.jobTitle,
+                      count: row.employeeCount,
+                      averageSalaryUsd: row.averageSalaryUsd,
+                    }))}
+                  />
+                </Section>
+                <Section title="Salary distribution">
+                  <DistributionChart bands={data.distribution} />
+                </Section>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

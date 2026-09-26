@@ -56,7 +56,7 @@ function SortableHead({
         type="button"
         onClick={() => onSort(field)}
         className={cn(
-          'inline-flex items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring',
+          'hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm outline-none focus-visible:ring-2',
           active && 'text-foreground',
         )}
       >
@@ -89,7 +89,12 @@ export function EmployeeTable({
             className="hidden md:table-cell"
             {...sortProps}
           />
-          <SortableHead field="country" label="Country" className="hidden md:table-cell" {...sortProps} />
+          <SortableHead
+            field="country"
+            label="Country"
+            className="hidden md:table-cell"
+            {...sortProps}
+          />
           <SortableHead
             field="department"
             label="Department"
@@ -120,12 +125,12 @@ export function EmployeeTable({
             <TableCell>
               <Link
                 href={`/employees/${employee.id}`}
-                className="rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                className="focus-visible:ring-ring rounded-sm font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2"
               >
                 {employee.fullName}
               </Link>
-              <div className="text-xs break-all text-muted-foreground">{employee.email}</div>
-              <div className="text-xs text-muted-foreground lg:hidden">
+              <div className="text-muted-foreground text-xs break-all">{employee.email}</div>
+              <div className="text-muted-foreground text-xs lg:hidden">
                 {employee.jobTitle} · {formatDepartment(employee.department)}
               </div>
             </TableCell>
@@ -144,7 +149,10 @@ export function EmployeeTable({
             <TableCell>
               <div className="flex justify-end gap-1">
                 <Button asChild variant="ghost" size="sm">
-                  <Link href={`/employees/${employee.id}/edit`} aria-label={`Edit ${employee.fullName}`}>
+                  <Link
+                    href={`/employees/${employee.id}/edit`}
+                    aria-label={`Edit ${employee.fullName}`}
+                  >
                     <Pencil aria-hidden="true" />
                     Edit
                   </Link>

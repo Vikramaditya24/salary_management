@@ -9,7 +9,9 @@ import { EmployeeForm } from './employee-form';
 
 vi.mock('next/link', async () => await import('@/test/next-link'));
 
-function setup(onSubmit: (values: unknown) => Promise<void> = vi.fn().mockResolvedValue(undefined)) {
+function setup(
+  onSubmit: (values: unknown) => Promise<void> = vi.fn().mockResolvedValue(undefined),
+) {
   render(
     <EmployeeForm
       initialValues={EMPTY_FORM_VALUES}
@@ -23,7 +25,11 @@ function setup(onSubmit: (values: unknown) => Promise<void> = vi.fn().mockResolv
   return onSubmit;
 }
 
-function fill(overrides: Partial<Record<'name' | 'email' | 'country' | 'department' | 'title' | 'hired', string>> = {}) {
+function fill(
+  overrides: Partial<
+    Record<'name' | 'email' | 'country' | 'department' | 'title' | 'hired', string>
+  > = {},
+) {
   const values = {
     name: 'Ada Lovelace',
     email: 'ada@acme.com',
@@ -101,7 +107,9 @@ describe('EmployeeForm', () => {
     expect(saving).toBeDisabled();
 
     finish();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Create employee' })).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Create employee' })).toBeEnabled(),
+    );
   });
 
   it('puts a duplicate-email conflict on the email field', async () => {
@@ -117,11 +125,13 @@ describe('EmployeeForm', () => {
 
   it('maps per-field validation details from the API', async () => {
     setup(
-      vi.fn().mockRejectedValue(
-        new ApiError(400, 'VALIDATION_ERROR', 'The request is invalid.', [
-          { field: 'jobTitle', message: 'jobTitle must be at most 80 characters.' },
-        ]),
-      ),
+      vi
+        .fn()
+        .mockRejectedValue(
+          new ApiError(400, 'VALIDATION_ERROR', 'The request is invalid.', [
+            { field: 'jobTitle', message: 'jobTitle must be at most 80 characters.' },
+          ]),
+        ),
     );
     fill();
     submit();
@@ -132,7 +142,9 @@ describe('EmployeeForm', () => {
   });
 
   it('shows other failures (e.g. the API being down) in an alert and keeps the input', async () => {
-    setup(vi.fn().mockRejectedValue(new ApiError(0, 'NETWORK_ERROR', 'Could not reach the server.')));
+    setup(
+      vi.fn().mockRejectedValue(new ApiError(0, 'NETWORK_ERROR', 'Could not reach the server.')),
+    );
     fill();
     submit();
 

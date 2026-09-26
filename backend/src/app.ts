@@ -1,10 +1,11 @@
+import { registerAuth } from './auth.js';
+import { registerSalary } from './salary.js';
+import { registerReference } from './reference.js';
+import type { PrismaClient } from './generated/prisma/index.js';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import { salaryAnalyticsRoutes } from './analytics/routes.js';
-import {
-  createSalaryAnalyticsService,
-  type SalaryAnalyticsService,
-} from './analytics/service.js';
+import { createSalaryAnalyticsService, type SalaryAnalyticsService } from './analytics/service.js';
 import { env } from './config/env.js';
 import { registerErrorHandling } from './lib/error-handler.js';
 import { prisma } from './lib/prisma.js';
@@ -15,6 +16,9 @@ import { healthRoutes } from './routes/health.js';
 export interface BuildAppOptions {
   /** Override the employee service (used by HTTP-layer tests). */
   employeeService?: EmployeeService;
+  testOnlyDisableAuth?: boolean;
+  authDb?: PrismaClient;
+  salaryDb?: PrismaClient;
   /** Override the salary analytics service (used by HTTP-layer tests). */
   salaryAnalyticsService?: SalaryAnalyticsService;
 }
@@ -36,6 +40,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
               paths: [
                 'req.headers.authorization',
                 'req.headers.cookie',
+                'req.body.password',
+                '*.password',
+                '*.token',
                 '*.amount',
                 '*.salary',
                 '*.currentSalary',
@@ -59,7 +66,20 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
+  await registerAuth(app, options.testOnlyDisableAuth, options.authDb);
+  app.addHook('preValidation', async (request) => {
+    if (
+      ['POST', 'PATCH'].includes(request.method) &&
+      request.url.split('?')[0] !== '/auth/logout' &&
+      request.headers['content-type'] &&
+      !/^application\/json(?:;|$)/i.test(request.headers['content-type'])
+    ) {
+      throw Object.assign(new Error('Unsupported content type'), { statusCode: 415 });
+    }
+  });
   await app.register(healthRoutes);
+  await registerSalary(app, options.salaryDb);
+  await registerReference(app);
   await app.register(employeeRoutes, {
     service: options.employeeService ?? createEmployeeService(prisma),
   });

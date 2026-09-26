@@ -33,6 +33,16 @@ export function toApiError(err: unknown): ApiError {
   return new ApiError(0, 'UNKNOWN_ERROR', err instanceof Error ? err.message : 'Request failed.');
 }
 
+let bearerToken: string | null = null;
+let onUnauthorized: (() => void) | null = null;
+
+export function setBearerToken(token: string | null) {
+  bearerToken = token;
+}
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
+
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
@@ -68,13 +78,17 @@ function parseErrorEnvelope(status: number, json: unknown): ApiError {
  */
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, signal } = options;
+  const requestToken = bearerToken;
   const headers: Record<string, string> = { Accept: 'application/json' };
+  if (requestToken) headers.Authorization = `Bearer ${requestToken}`;
   let payload: string | undefined;
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
     payload = JSON.stringify(body);
   }
 
+  if (!apiUrl)
+    throw new ApiError(0, 'CONFIG_ERROR', 'Set NEXT_PUBLIC_API_URL to the backend origin.');
   let response: Response;
   try {
     response = await fetch(`${apiUrl}${path}`, { method, headers, body: payload, signal });
@@ -94,6 +108,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     json = null;
   }
 
-  if (!response.ok) throw parseErrorEnvelope(response.status, json);
+  if (!response.ok) {
+    if (response.status === 401 && requestToken && bearerToken === requestToken) onUnauthorized?.();
+    throw parseErrorEnvelope(response.status, json);
+  }
   return json as T;
 }

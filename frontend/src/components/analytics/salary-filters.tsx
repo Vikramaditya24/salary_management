@@ -8,7 +8,7 @@ import type { SalaryAnalyticsFilters } from '@/lib/api/analytics';
 interface SalaryFiltersProps {
   filters: SalaryAnalyticsFilters;
   /** Countries/departments available to filter by - derived from the unfiltered analytics response. */
-  countryOptions: { name: string, code: string }[];
+  countryOptions: { name: string; code: string }[];
   departmentOptions: string[];
   onChange: (patch: Partial<SalaryAnalyticsFilters>) => void;
   onClear: () => void;

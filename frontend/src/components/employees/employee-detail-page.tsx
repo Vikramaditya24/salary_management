@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
-import { Pencil } from 'lucide-react';
+import { Pencil, Wallet } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ function DetailSkeleton() {
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="text-muted-foreground text-xs">{label}</dt>
       <dd className="mt-0.5 text-sm">{children}</dd>
     </div>
   );
@@ -38,15 +38,21 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 
 export function EmployeeDetailPage({ id }: { id: string }) {
   const fetchEmployee = useCallback((signal: AbortSignal) => getEmployee(id, signal), [id]);
-  const { data: employee, error, isInitialLoading, isFetching, refetch } = useApiQuery(fetchEmployee);
+  const {
+    data: employee,
+    error,
+    isInitialLoading,
+    isFetching,
+    refetch,
+  } = useApiQuery(fetchEmployee);
   const [deactivating, setDeactivating] = useState(false);
 
   let body: React.ReactNode;
   if (error && (error.status === 404 || error.status === 400)) {
     body = (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-14 text-center">
+      <div className="border-border flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
         <h1 className="text-lg font-semibold">Employee not found</h1>
-        <p className="max-w-sm text-sm text-muted-foreground">
+        <p className="text-muted-foreground max-w-sm text-sm">
           This employee doesn’t exist or the link is wrong.
         </p>
         <Button asChild variant="outline">
@@ -67,7 +73,9 @@ export function EmployeeDetailPage({ id }: { id: string }) {
               <h1 className="text-2xl font-semibold">{employee.fullName}</h1>
               <EmployeeStatusBadge status={employee.employmentStatus} />
             </div>
-            <p className="mt-1 font-mono text-sm text-muted-foreground">{employee.employeeNumber}</p>
+            <p className="text-muted-foreground mt-1 font-mono text-sm">
+              {employee.employeeNumber}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
@@ -76,6 +84,14 @@ export function EmployeeDetailPage({ id }: { id: string }) {
                 Edit
               </Link>
             </Button>
+            {employee.employmentStatus === 'ACTIVE' && (
+              <Button asChild>
+                <Link href={`/employees/${employee.id}/salary`}>
+                  <Wallet aria-hidden="true" />
+                  {employee.currentSalary ? 'Change salary' : 'Set salary'}
+                </Link>
+              </Button>
+            )}
             {employee.employmentStatus === 'ACTIVE' ? (
               <Button type="button" variant="destructive" onClick={() => setDeactivating(true)}>
                 Deactivate
@@ -88,6 +104,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
 
         <ProfileCard employee={employee} />
         <SalaryCard salary={employee.currentSalary} />
+        <SalaryHistory history={employee.salaryHistory} />
 
         {deactivating && (
           <DeactivateEmployeeDialog
@@ -113,7 +130,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
 
 function ProfileCard({ employee }: { employee: EmployeeDetail }) {
   return (
-    <section aria-labelledby="profile-heading" className="rounded-lg border border-border p-5">
+    <section aria-labelledby="profile-heading" className="border-border rounded-lg border p-5">
       <h2 id="profile-heading" className="text-base font-semibold">
         Profile
       </h2>
@@ -140,7 +157,7 @@ function ProfileCard({ employee }: { employee: EmployeeDetail }) {
 
 function SalaryCard({ salary }: { salary: EmployeeDetail['currentSalary'] }) {
   return (
-    <section aria-labelledby="salary-heading" className="rounded-lg border border-border p-5">
+    <section aria-labelledby="salary-heading" className="border-border rounded-lg border p-5">
       <h2 id="salary-heading" className="text-base font-semibold">
         Current salary
       </h2>
@@ -149,12 +166,65 @@ function SalaryCard({ salary }: { salary: EmployeeDetail['currentSalary'] }) {
           <span className="text-2xl font-semibold tabular-nums">
             {formatMoney(salary.amount, salary.currencyCode)}
           </span>{' '}
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             per year · effective {formatDate(salary.effectiveDate)}
           </span>
         </p>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">No salary is on record for this employee.</p>
+        <p className="text-muted-foreground mt-3 text-sm">
+          No salary is on record for this employee.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function SalaryHistory({ history }: { history: EmployeeDetail['salaryHistory'] }) {
+  return (
+    <section aria-labelledby="history-heading" className="border-border rounded-lg border p-5">
+      <h2 id="history-heading" className="text-base font-semibold">
+        Salary history
+      </h2>
+      {history.length === 0 ? (
+        <p className="text-muted-foreground mt-3 text-sm">No salary history yet.</p>
+      ) : (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-muted-foreground border-b text-xs">
+              <tr>
+                <th scope="col" className="pb-3 font-medium">
+                  Effective
+                </th>
+                <th scope="col" className="pb-3 font-medium">
+                  Until
+                </th>
+                <th scope="col" className="pb-3 text-right font-medium">
+                  Annual salary
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((entry) => (
+                <tr key={entry.id} className="border-b last:border-0">
+                  <td className="py-3">{formatDate(entry.effectiveDate)}</td>
+                  <td className="py-3">
+                    {entry.endDate ? (
+                      formatDate(entry.endDate)
+                    ) : (
+                      <span className="text-foreground font-medium">Current</span>
+                    )}
+                  </td>
+                  <td className="py-3 text-right font-medium tabular-nums">
+                    {formatMoney(entry.amount, entry.currencyCode)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="text-muted-foreground mt-3 text-xs">
+            Until dates are exclusive; the next salary begins on that date.
+          </p>
+        </div>
       )}
     </section>
   );

@@ -1,3 +1,4 @@
+import { salaryDto } from '../salary.js';
 import type { DepartmentValue, EmploymentStatusValue } from './constants.js';
 import type { EmployeeDetailRow, EmployeeRow } from './select.js';
 
@@ -17,17 +18,10 @@ export interface EmployeeDto {
   updatedAt: string;
 }
 
-export interface CurrentSalaryDto {
-  /** Exact decimal as a string (never a JSON number), e.g. "128450.00". */
-  amount: string;
-  currencyCode: string;
-  /** Calendar date, YYYY-MM-DD. */
-  effectiveDate: string;
-}
-
-/** Only the single-employee endpoint includes salary. */
+/** The single-employee endpoint includes current salary and complete history. */
 export interface EmployeeDetailDto extends EmployeeDto {
-  currentSalary: CurrentSalaryDto | null;
+  currentSalary: ReturnType<typeof salaryDto> | null;
+  salaryHistory: ReturnType<typeof salaryDto>[];
 }
 
 export interface EmployeeFilterOptionsDto {
@@ -56,17 +50,10 @@ export function toEmployeeDto(row: EmployeeRow): EmployeeDto {
 }
 
 export function toEmployeeDetailDto(row: EmployeeDetailRow): EmployeeDetailDto {
-  const current = row.salaryRecords[0];
+  const history = row.salaryRecords.map(salaryDto);
   return {
     ...toEmployeeDto(row),
-    currentSalary: current
-      ? {
-          // toFixed, not toString: decimal.js drops trailing zeros ("128450"),
-          // and the column is numeric(14,2), so always render two places.
-          amount: current.amount.toFixed(2),
-          currencyCode: current.currencyCode,
-          effectiveDate: toIsoDate(current.effectiveDate),
-        }
-      : null,
+    currentSalary: history.find((r) => r.endDate === null) ?? null,
+    salaryHistory: history,
   };
 }

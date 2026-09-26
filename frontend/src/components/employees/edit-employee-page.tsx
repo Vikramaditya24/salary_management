@@ -29,7 +29,7 @@ export function EditEmployeePage({ id }: { id: string }) {
   let body: React.ReactNode;
   if (notFound) {
     body = (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-14 text-center">
+      <div className="border-border flex flex-col items-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center">
         <h1 className="text-lg font-semibold">Employee not found</h1>
         <Button asChild variant="outline">
           <Link href="/employees">Back to employees</Link>
@@ -63,7 +63,7 @@ export function EditEmployeePage({ id }: { id: string }) {
       <>
         <div>
           <h1 className="text-2xl font-semibold">Edit {current.fullName}</h1>
-          <p className="mt-1 font-mono text-sm text-muted-foreground">{current.employeeNumber}</p>
+          <p className="text-muted-foreground mt-1 font-mono text-sm">{current.employeeNumber}</p>
         </div>
         <EmployeeForm
           initialValues={initialValues}

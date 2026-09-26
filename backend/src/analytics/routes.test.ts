@@ -21,9 +21,15 @@ const insights: SalaryInsightsDto = {
     minSalaryUsd: '30000.00',
     maxSalaryUsd: '400000.00',
   },
-  byDepartment: [{ department: 'ENGINEERING', employeeCount: 4000, averageSalaryUsd: '110000.00' }],
-  byCountry: [
-    { country: { code: 'US', name: 'United States' }, employeeCount: 5000, averageSalaryUsd: '105000.00' },
+  headcountByDepartment: [
+    { department: 'ENGINEERING', employeeCount: 4000, averageSalaryUsd: '110000.00' },
+  ],
+  headcountByCountry: [
+    {
+      country: { code: 'US', name: 'United States' },
+      employeeCount: 5000,
+      averageSalaryUsd: '105000.00',
+    },
   ],
 };
 
@@ -36,7 +42,10 @@ let app: FastifyInstance;
 
 beforeEach(async () => {
   stub = createStub();
-  app = await buildApp({ salaryAnalyticsService: stub as unknown as SalaryAnalyticsService });
+  app = await buildApp({
+    testOnlyDisableAuth: true,
+    salaryAnalyticsService: stub as unknown as SalaryAnalyticsService,
+  });
 });
 
 afterEach(async () => {
@@ -121,7 +130,14 @@ describe('GET /analytics/salary', () => {
     expect(body.error.code).toBe('INTERNAL_ERROR');
     expect(body.error.message).toBe('An unexpected error occurred.');
     expect(typeof body.error.requestId).toBe('string');
-    for (const leaked of ['ECONNREFUSED', 'postgres://', 'hunter2', 'db.internal', 'stack', ' at ']) {
+    for (const leaked of [
+      'ECONNREFUSED',
+      'postgres://',
+      'hunter2',
+      'db.internal',
+      'stack',
+      ' at ',
+    ]) {
       expect(response.body.includes(leaked)).toBe(false);
     }
   });

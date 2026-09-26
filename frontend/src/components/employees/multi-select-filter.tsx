@@ -53,7 +53,9 @@ export function MultiSelectFilter({
     ...selected.filter((value) => !known.has(value)).map((value) => ({ value, label: value })),
   ];
   const needle = search.trim().toLowerCase();
-  const visible = needle ? all.filter((option) => option.label.toLowerCase().includes(needle)) : all;
+  const visible = needle
+    ? all.filter((option) => option.label.toLowerCase().includes(needle))
+    : all;
 
   function toggle(value: string, checked: boolean) {
     onChange(checked ? [...selected, value] : selected.filter((item) => item !== value));
@@ -92,7 +94,7 @@ export function MultiSelectFilter({
           id={panelId}
           role="group"
           aria-label={`${label} filter`}
-          className="absolute left-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-popover p-2 text-popover-foreground shadow-lg"
+          className="border-border bg-popover text-popover-foreground absolute left-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md border p-2 shadow-lg"
         >
           {searchable && (
             <Input
@@ -111,12 +113,12 @@ export function MultiSelectFilter({
                 <li key={option.value}>
                   <label
                     htmlFor={inputId}
-                    className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                    className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm"
                   >
                     <input
                       id={inputId}
                       type="checkbox"
-                      className="size-4 accent-primary"
+                      className="accent-primary size-4"
                       checked={selected.includes(option.value)}
                       onChange={(event) => toggle(option.value, event.target.checked)}
                     />
@@ -126,11 +128,11 @@ export function MultiSelectFilter({
               );
             })}
             {visible.length === 0 && (
-              <li className="px-2 py-1.5 text-sm text-muted-foreground">No matches</li>
+              <li className="text-muted-foreground px-2 py-1.5 text-sm">No matches</li>
             )}
           </ul>
           {selected.length > 0 && (
-            <div className="mt-2 border-t border-border pt-2">
+            <div className="border-border mt-2 border-t pt-2">
               <Button type="button" variant="ghost" size="sm" onClick={() => onChange([])}>
                 Clear {label.toLowerCase()}
               </Button>

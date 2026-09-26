@@ -38,7 +38,7 @@ const scoped = (params = '') =>
 
 describe('employee API against Postgres', () => {
   beforeAll(async () => {
-    app = await buildApp();
+    app = await buildApp({ testOnlyDisableAuth: true });
     await cleanup();
     await prisma.currency.upsert({
       where: { code: CURRENCY },
@@ -140,7 +140,9 @@ describe('employee API against Postgres', () => {
       const byDepartment = await get(scoped('department=SALES&status=ALL'));
       expect(byDepartment.body.meta.totalItems).toBe(15);
 
-      const byTitle = await get(scoped(`jobTitle=${encodeURIComponent('Apitest Lead')}&status=ALL`));
+      const byTitle = await get(
+        scoped(`jobTitle=${encodeURIComponent('Apitest Lead')}&status=ALL`),
+      );
       expect(byTitle.body.meta.totalItems).toBe(10);
 
       const both = await get(scoped(`country=${COUNTRY_A}&department=ENGINEERING&status=ALL`));
@@ -162,9 +164,9 @@ describe('employee API against Postgres', () => {
       ]);
 
       const numberSearch = await get(`/employees?q=${encodeURIComponent('apt-000007')}`);
-      expect(numberSearch.body.data.map((e: { employeeNumber: string }) => e.employeeNumber)).toEqual([
-        'APT-000007',
-      ]);
+      expect(
+        numberSearch.body.data.map((e: { employeeNumber: string }) => e.employeeNumber),
+      ).toEqual(['APT-000007']);
 
       const none = await get(`/employees?q=${encodeURIComponent(`${TAG} nonexistentzzz`)}`);
       expect(none.body.meta.totalItems).toBe(0);
@@ -194,19 +196,21 @@ describe('employee API against Postgres', () => {
   });
 
   describe('retrieval', () => {
-    it('returns an employee with only the current salary, as an exact string', async () => {
+    it('returns current salary and history as exact strings', async () => {
       const list = await get(`/employees?q=${encodeURIComponent(`apitest.07${TAG}`)}`);
       const id = list.body.data[0].id;
 
       const { status, body, raw } = await get(`/employees/${id}`);
 
       expect(status).toBe(200);
-      expect(body.data.currentSalary).toEqual({
+      expect(body.data.currentSalary).toMatchObject({
         amount: '150000.50',
         currencyCode: CURRENCY,
         effectiveDate: '2022-01-01',
+        endDate: null,
       });
-      expect(raw.includes('90000')).toBe(false); // the closed record is not exposed
+      expect(body.data.salaryHistory).toHaveLength(2);
+      expect(raw.includes('90000')).toBe(true);
     });
 
     it('returns null for the salary of an employee without one', async () => {
@@ -255,12 +259,16 @@ describe('employee API against Postgres', () => {
       expect(deleted.statusCode).toBe(200);
       expect(deleted.json().data.employmentStatus).toBe('TERMINATED');
       // Soft delete: the row and its detail view are still there.
-      expect((await get(`/employees/${employee.id}`)).body.data.employmentStatus).toBe('TERMINATED');
+      expect((await get(`/employees/${employee.id}`)).body.data.employmentStatus).toBe(
+        'TERMINATED',
+      );
       // ...but it no longer shows up in the default (active) list.
       const active = await get(`/employees?q=${encodeURIComponent('apitest.newhire' + TAG)}`);
       expect(active.body.meta.totalItems).toBe(0);
       // Idempotent.
-      expect((await app.inject({ method: 'DELETE', url: `/employees/${employee.id}` })).statusCode).toBe(200);
+      expect(
+        (await app.inject({ method: 'DELETE', url: `/employees/${employee.id}` })).statusCode,
+      ).toBe(200);
 
       const reactivated = await app.inject({
         method: 'PATCH',
@@ -288,7 +296,7 @@ describe('employee API against Postgres', () => {
       expect(second.body.includes('employees_email_key')).toBe(false);
     });
 
-    it('rejects editing an email onto another employee\'s with 409', async () => {
+    it("rejects editing an email onto another employee's with 409", async () => {
       const list = await get(`/employees?q=${encodeURIComponent(`apitest.01${TAG}`)}`);
       const response = await app.inject({
         method: 'PATCH',
@@ -319,7 +327,11 @@ describe('employee API against Postgres', () => {
 
     it('returns 404 when editing or deleting an unknown employee', async () => {
       const id = '00000000-0000-4000-8000-000000000000';
-      const patch = await app.inject({ method: 'PATCH', url: `/employees/${id}`, payload: { jobTitle: 'X' } });
+      const patch = await app.inject({
+        method: 'PATCH',
+        url: `/employees/${id}`,
+        payload: { jobTitle: 'X' },
+      });
       expect(patch.statusCode).toBe(404);
       const del = await app.inject({ method: 'DELETE', url: `/employees/${id}` });
       expect(del.statusCode).toBe(404);

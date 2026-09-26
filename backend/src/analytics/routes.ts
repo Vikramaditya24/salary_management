@@ -26,6 +26,6 @@ export const salaryAnalyticsRoutes: FastifyPluginAsync<SalaryAnalyticsRoutesOpti
 
   app.get('/analytics/salary', async (request) => {
     const query = parseSalaryInsightsQuery(request.query);
-    return  await service.getSalaryInsights(query) ;
+    return { data: await service.getSalaryInsights(query) };
   });
 };

@@ -37,7 +37,11 @@ function detailRow(salary: 'has-salary' | 'no-salary'): EmployeeDetailRow {
       salary === 'has-salary'
         ? [
             {
+              id: ID,
               amount: decimal(128450),
+              endDate: null,
+              createdBy: 'seed-script',
+              createdAt: new Date('2024-03-01T00:00:00.000Z'),
               currencyCode: 'GBP',
               effectiveDate: new Date('2024-03-01T00:00:00.000Z'),
             },
@@ -255,12 +259,19 @@ describe('getById', () => {
       amount: '128450.00',
       currencyCode: 'GBP',
       effectiveDate: '2024-03-01',
+      endDate: null,
+      id: ID,
+      createdBy: 'seed-script',
+      createdAt: '2024-03-01T00:00:00.000Z',
     });
+    expect(result.salaryHistory).toHaveLength(1);
   });
 
-  it('only asks the database for the current (open-ended) salary record', () => {
-    expect(employeeDetailSelect.salaryRecords.where).toEqual({ endDate: null });
-    expect(employeeDetailSelect.salaryRecords.take).toBe(1);
+  it('asks the database for ordered salary history', () => {
+    expect(employeeDetailSelect.salaryRecords.orderBy).toEqual([
+      { effectiveDate: 'desc' },
+      { id: 'desc' },
+    ]);
   });
 
   it('returns a null salary for an employee who has none', async () => {
@@ -308,10 +319,13 @@ describe('create', () => {
   });
 
   it('rejects a hire date in the future with 422 and writes nothing', async () => {
-    const error = await expectAppError(() => service.create({ ...validCreate, hireDate: '2026-09-25' }), {
-      statusCode: 422,
-      code: 'HIRE_DATE_IN_FUTURE',
-    });
+    const error = await expectAppError(
+      () => service.create({ ...validCreate, hireDate: '2026-09-25' }),
+      {
+        statusCode: 422,
+        code: 'HIRE_DATE_IN_FUTURE',
+      },
+    );
     expect(error.details?.[0]?.field).toBe('hireDate');
     expect(mocks.employee.create).not.toHaveBeenCalled();
   });
@@ -323,10 +337,13 @@ describe('create', () => {
 
   it('rejects an unknown country with 422 and writes nothing', async () => {
     mocks.country.findUnique.mockResolvedValue(null);
-    const error = await expectAppError(() => service.create({ ...validCreate, countryCode: 'ZZ' }), {
-      statusCode: 422,
-      code: 'COUNTRY_NOT_FOUND',
-    });
+    const error = await expectAppError(
+      () => service.create({ ...validCreate, countryCode: 'ZZ' }),
+      {
+        statusCode: 422,
+        code: 'COUNTRY_NOT_FOUND',
+      },
+    );
     expect(error.details?.[0]?.field).toBe('countryCode');
     expect(mocks.employee.create).not.toHaveBeenCalled();
   });
@@ -370,7 +387,10 @@ describe('create', () => {
     mocks.employee.create.mockRejectedValue(
       prismaError('P2002', { meta: { target: ['employee_number'] } }),
     );
-    const limited = createEmployeeService(mocks.db, { now: () => NOW, maxEmployeeNumberAttempts: 3 });
+    const limited = createEmployeeService(mocks.db, {
+      now: () => NOW,
+      maxEmployeeNumberAttempts: 3,
+    });
 
     await expectAppError(() => limited.create(validCreate), {
       statusCode: 409,
@@ -492,7 +512,9 @@ describe('deactivate', () => {
 
     const result = await service.deactivate(ID);
 
-    expect(mocks.employee.update.mock.calls[0]![0].data).toEqual({ employmentStatus: 'TERMINATED' });
+    expect(mocks.employee.update.mock.calls[0]![0].data).toEqual({
+      employmentStatus: 'TERMINATED',
+    });
     expect(result.employmentStatus).toBe('TERMINATED');
   });
 

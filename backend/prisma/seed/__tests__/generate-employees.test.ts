@@ -5,7 +5,9 @@ import { DEPARTMENTS } from '../job-titles.js';
 
 const COUNTRY_CODES = new Set(COUNTRIES.map((c) => c.code));
 const CURRENCY_BY_CODE = new Map(CURRENCIES.map((c) => [c.code, c]));
-const VALID_COUNTRY_CURRENCY_PAIRS = new Set(COUNTRIES.map((c) => `${c.code}:${c.defaultCurrencyCode}`));
+const VALID_COUNTRY_CURRENCY_PAIRS = new Set(
+  COUNTRIES.map((c) => `${c.code}:${c.defaultCurrencyCode}`),
+);
 
 const SMALL_COUNT = 500;
 const SMALL_SEED = 20260924;
@@ -141,9 +143,9 @@ describe('generateDataset', () => {
 
       for (let i = 0; i < sorted.length; i++) {
         const record = sorted[i]!;
-        expect(record.endDate === null || record.endDate.getTime() >= record.effectiveDate.getTime()).toBe(
-          true,
-        );
+        expect(
+          record.endDate === null || record.endDate.getTime() >= record.effectiveDate.getTime(),
+        ).toBe(true);
 
         const next = sorted[i + 1];
         if (next) {

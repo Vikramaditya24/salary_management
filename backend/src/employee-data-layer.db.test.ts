@@ -18,7 +18,9 @@ const TEST_CURRENCY_CODE = 'USD';
 const TEST_COUNTRY_CODE = 'US';
 
 let employeeCounter = 0;
-function uniqueEmployeeInput(overrides: Partial<Parameters<typeof prisma.employee.create>[0]['data']> = {}) {
+function uniqueEmployeeInput(
+  overrides: Partial<Parameters<typeof prisma.employee.create>[0]['data']> = {},
+) {
   employeeCounter += 1;
   const n = employeeCounter;
   return {
@@ -53,12 +55,21 @@ describe('employee data layer — DB constraints', () => {
     // script's job, not a test fixture's.
     await prisma.currency.upsert({
       where: { code: TEST_CURRENCY_CODE },
-      create: { code: TEST_CURRENCY_CODE, name: 'US Dollar', minorUnit: 2, exchangeRateToUsd: '1.0' },
+      create: {
+        code: TEST_CURRENCY_CODE,
+        name: 'US Dollar',
+        minorUnit: 2,
+        exchangeRateToUsd: '1.0',
+      },
       update: {},
     });
     await prisma.country.upsert({
       where: { code: TEST_COUNTRY_CODE },
-      create: { code: TEST_COUNTRY_CODE, name: 'United States', defaultCurrencyCode: TEST_CURRENCY_CODE },
+      create: {
+        code: TEST_COUNTRY_CODE,
+        name: 'United States',
+        defaultCurrencyCode: TEST_CURRENCY_CODE,
+      },
       update: {},
     });
   });
@@ -76,7 +87,9 @@ describe('employee data layer — DB constraints', () => {
     const input = uniqueEmployeeInput();
     await prisma.employee.create({ data: input });
     await expect(
-      prisma.employee.create({ data: { ...uniqueEmployeeInput(), employeeNumber: input.employeeNumber } }),
+      prisma.employee.create({
+        data: { ...uniqueEmployeeInput(), employeeNumber: input.employeeNumber },
+      }),
     ).rejects.toThrow();
   });
 
@@ -95,7 +108,9 @@ describe('employee data layer — DB constraints', () => {
   });
 
   it('rejects a blank full name', async () => {
-    await expect(prisma.employee.create({ data: uniqueEmployeeInput({ fullName: '   ' }) })).rejects.toThrow();
+    await expect(
+      prisma.employee.create({ data: uniqueEmployeeInput({ fullName: '   ' }) }),
+    ).rejects.toThrow();
   });
 
   it('rejects a hire date in the future', async () => {
@@ -225,7 +240,11 @@ describe('employee data layer — DB constraints', () => {
     });
 
     const engineers = await prisma.employee.findMany({
-      where: { department: 'ENGINEERING', countryCode: TEST_COUNTRY_CODE, employeeNumber: { startsWith: 'TST-' } },
+      where: {
+        department: 'ENGINEERING',
+        countryCode: TEST_COUNTRY_CODE,
+        employeeNumber: { startsWith: 'TST-' },
+      },
     });
     expect(engineers.every((e) => e.department === 'ENGINEERING')).toBe(true);
   });

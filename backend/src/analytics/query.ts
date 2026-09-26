@@ -91,3 +91,46 @@ export function buildByCountrySql(query: SalaryInsightsQuery): Prisma.Sql {
     ORDER BY cs.country_code
   `;
 }
+
+/** Median, count of all active employees, and count with no current salary. */
+export function buildDashboardTotalsSql(query: SalaryInsightsQuery): Prisma.Sql {
+  const country = query.country ? Prisma.sql`AND e.country_code = ${query.country}` : Prisma.empty;
+  const department = query.department
+    ? Prisma.sql`AND e.department = ${query.department}::"department"`
+    : Prisma.empty;
+  return Prisma.sql`
+    ${buildCurrentSalaryCte(query)}, population AS (
+      SELECT COUNT(*) FILTER (WHERE e.employment_status = 'ACTIVE')::int AS headcount,
+        COUNT(*) FILTER (WHERE e.employment_status = 'TERMINATED')::int AS terminated_headcount
+      FROM employees e WHERE TRUE ${country} ${department}
+    )
+    SELECT p.headcount, p.terminated_headcount, (SELECT ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY amount_usd)::numeric, 2) FROM current_salaries) AS median_usd
+    FROM population p
+  `;
+}
+
+export function buildByRoleSql(query: SalaryInsightsQuery): Prisma.Sql {
+  const country = query.country ? Prisma.sql`AND e.country_code = ${query.country}` : Prisma.empty;
+  const department = query.department
+    ? Prisma.sql`AND e.department = ${query.department}::"department"`
+    : Prisma.empty;
+  return Prisma.sql`
+    SELECT e.job_title, COUNT(*)::int AS employee_count,
+      ROUND(AVG(sr.amount * cur.exchange_rate_to_usd),2) AS average_usd,
+      ROUND(MIN(sr.amount * cur.exchange_rate_to_usd),2) AS min_usd,
+      ROUND(MAX(sr.amount * cur.exchange_rate_to_usd),2) AS max_usd
+    FROM employees e JOIN salary_records sr ON sr.employee_id=e.id AND sr.end_date IS NULL
+    JOIN currencies cur ON cur.code=sr.currency_code
+    WHERE e.employment_status='ACTIVE' ${country} ${department}
+    GROUP BY e.job_title ORDER BY employee_count DESC, e.job_title
+  `;
+}
+
+export function buildDistributionSql(query: SalaryInsightsQuery): Prisma.Sql {
+  return Prisma.sql`
+    ${buildCurrentSalaryCte(query)}
+    SELECT (FLOOR(amount_usd / 25000) * 25000)::bigint AS lower_usd,
+      COUNT(*)::int AS employee_count
+    FROM current_salaries GROUP BY lower_usd ORDER BY lower_usd
+  `;
+}

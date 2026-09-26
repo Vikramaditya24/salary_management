@@ -168,7 +168,7 @@ describe('normalizeListQuery', () => {
 });
 
 describe('parseEmployeeParams', () => {
-  it('accepts a UUID (including the seed generator\'s v4 ids)', () => {
+  it("accepts a UUID (including the seed generator's v4 ids)", () => {
     const id = '3f0a9c1e-8b7d-4c2a-9e6f-1a2b3c4d5e6f';
     expect(parseEmployeeParams({ id })).toEqual({ id });
   });
@@ -196,20 +196,29 @@ describe('parseCreateEmployeeBody', () => {
 
   it('requires every field', () => {
     const fields = validationFields(() => parseCreateEmployeeBody({}));
-    for (const field of ['fullName', 'email', 'countryCode', 'department', 'jobTitle', 'hireDate']) {
+    for (const field of [
+      'fullName',
+      'email',
+      'countryCode',
+      'department',
+      'jobTitle',
+      'hireDate',
+    ]) {
       expect(fields).toContain(field);
     }
   });
 
   it('rejects blank and over-long text', () => {
-    expect(validationFields(() => parseCreateEmployeeBody({ ...validCreate, fullName: '   ' }))).toContain(
-      'fullName',
-    );
+    expect(
+      validationFields(() => parseCreateEmployeeBody({ ...validCreate, fullName: '   ' })),
+    ).toContain('fullName');
     expect(
       validationFields(() => parseCreateEmployeeBody({ ...validCreate, jobTitle: 'x'.repeat(81) })),
     ).toContain('jobTitle');
     expect(
-      validationFields(() => parseCreateEmployeeBody({ ...validCreate, fullName: 'x'.repeat(121) })),
+      validationFields(() =>
+        parseCreateEmployeeBody({ ...validCreate, fullName: 'x'.repeat(121) }),
+      ),
     ).toContain('fullName');
   });
 
@@ -223,7 +232,9 @@ describe('parseCreateEmployeeBody', () => {
 
   it('rejects invalid department and country values', () => {
     expect(
-      validationFields(() => parseCreateEmployeeBody({ ...validCreate, department: 'Engineering' })),
+      validationFields(() =>
+        parseCreateEmployeeBody({ ...validCreate, department: 'Engineering' }),
+      ),
     ).toContain('department');
     expect(
       validationFields(() => parseCreateEmployeeBody({ ...validCreate, countryCode: 'GBR' })),
@@ -243,9 +254,9 @@ describe('parseCreateEmployeeBody', () => {
   });
 
   it('rejects wrong types', () => {
-    expect(validationFields(() => parseCreateEmployeeBody({ ...validCreate, fullName: 42 }))).toContain(
-      'fullName',
-    );
+    expect(
+      validationFields(() => parseCreateEmployeeBody({ ...validCreate, fullName: 42 })),
+    ).toContain('fullName');
     expect(validationFields(() => parseCreateEmployeeBody('a string'))).toContain('(request)');
     expect(validationFields(() => parseCreateEmployeeBody(null))).toContain('(request)');
     expect(validationFields(() => parseCreateEmployeeBody([]))).toContain('(request)');
@@ -289,10 +300,12 @@ describe('parseUpdateEmployeeBody', () => {
     expect(validationFields(() => parseUpdateEmployeeBody({ hireDate: '2020-02-30' }))).toContain(
       'hireDate',
     );
-    expect(validationFields(() => parseUpdateEmployeeBody({ employmentStatus: 'RETIRED' }))).toContain(
-      'employmentStatus',
+    expect(
+      validationFields(() => parseUpdateEmployeeBody({ employmentStatus: 'RETIRED' })),
+    ).toContain('employmentStatus');
+    expect(validationFields(() => parseUpdateEmployeeBody({ jobTitle: null }))).toContain(
+      'jobTitle',
     );
-    expect(validationFields(() => parseUpdateEmployeeBody({ jobTitle: null }))).toContain('jobTitle');
   });
 
   it('cannot change immutable or server-owned fields', () => {

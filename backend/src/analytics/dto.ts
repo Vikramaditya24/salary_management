@@ -18,6 +18,11 @@ export interface SalaryOverallStats {
   averageSalaryUsd: string | null;
   minSalaryUsd: string | null;
   maxSalaryUsd: string | null;
+  medianSalaryUsd?: string | null;
+  activeHeadcount?: number;
+  terminatedHeadcount?: number;
+  totalHeadcount?: number;
+  withoutSalaryCount?: number;
 }
 
 export interface DepartmentSalaryBreakdown {
@@ -39,6 +44,19 @@ export interface SalaryInsightsDto {
   overall: SalaryOverallStats;
   headcountByDepartment: DepartmentSalaryBreakdown[];
   headcountByCountry: CountrySalaryBreakdown[];
+  salaryByRole?: {
+    jobTitle: string;
+    employeeCount: number;
+    averageSalaryUsd: string;
+    minSalaryUsd: string;
+    maxSalaryUsd: string;
+  }[];
+  distribution?: {
+    lowerUsd: number;
+    upperUsdExclusive: number;
+    employeeCount: number;
+    percentage: number;
+  }[];
 }
 
 // -- raw query row shapes (snake_case: these come straight from $queryRaw) --

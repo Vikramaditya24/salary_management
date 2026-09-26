@@ -30,14 +30,3 @@ export function formatMoney(amount: string, currencyCode: string): string {
 export function formatCount(value: number): string {
   return new Intl.NumberFormat('en-US').format(value);
 }
-
-const usdFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
-
-/** Formats a plain USD number with sensible precision (no cents) - for pre-aggregated analytics values. */
-export function formatUsd(amount: number): string {
-  return usdFormatter.format(amount);
-}

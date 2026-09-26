@@ -80,8 +80,7 @@ export function parseListState(params: ParamSource): ListState {
     .join(' ');
 
   return {
-    page:
-      Number.isInteger(page) && page >= 1 && page <= MAX_PAGE ? page : DEFAULT_LIST_STATE.page,
+    page: Number.isInteger(page) && page >= 1 && page <= MAX_PAGE ? page : DEFAULT_LIST_STATE.page,
     pageSize: PAGE_SIZES.find((size) => size === pageSize) ?? DEFAULT_LIST_STATE.pageSize,
     q,
     countries: unique(

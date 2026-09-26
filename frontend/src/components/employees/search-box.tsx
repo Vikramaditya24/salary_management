@@ -46,7 +46,7 @@ export function SearchBox({ value, onSearch, debounceMs = 300 }: SearchBoxProps)
       <div className="relative">
         <Search
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
         <Input
           id={id}
@@ -67,14 +67,14 @@ export function SearchBox({ value, onSearch, debounceMs = 300 }: SearchBoxProps)
               setText('');
               onSearch('');
             }}
-            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1 outline-none focus-visible:ring-2"
           >
             <X className="size-4" />
           </button>
         )}
       </div>
       {tooManyWords && (
-        <p id={`${id}-error`} className="text-sm text-destructive">
+        <p id={`${id}-error`} className="text-destructive text-sm">
           Search supports up to {MAX_SEARCH_WORDS} words.
         </p>
       )}

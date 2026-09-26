@@ -37,8 +37,7 @@ interface ServerFeedback {
   message: string | null;
 }
 
-const isField = (name: string): name is EmployeeField =>
-  (FIELD_ORDER as string[]).includes(name);
+const isField = (name: string): name is EmployeeField => (FIELD_ORDER as string[]).includes(name);
 
 /** Maps the API's error contract (docs/api.md) onto form fields, with a banner for the rest. */
 function readServerFeedback(error: ApiError): ServerFeedback {
@@ -123,7 +122,9 @@ export function EmployeeForm({
       {formError && <Alert variant="destructive">{formError}</Alert>}
       {errorCount > 0 && (
         <Alert variant="destructive">
-          {errorCount === 1 ? 'Please fix 1 field below.' : `Please fix ${errorCount} fields below.`}
+          {errorCount === 1
+            ? 'Please fix 1 field below.'
+            : `Please fix ${errorCount} fields below.`}
         </Alert>
       )}
 

@@ -1,25 +1,5 @@
-// Prisma schema — employee data layer phase.
-//
-// Scope of this phase (see docs/requirements.md, docs/architecture.md,
-// docs/decisions.md): the relational schema for employee identity and
-// salary history, plus the small reference tables needed to keep
-// country/currency data valid. No User/auth model yet, no API routes built
-// on top of this — that's the next phase.
-//
-// Design notes:
-// - Money is `Decimal`, never `Float`, mapped to Postgres `numeric` — exact
-//   arithmetic, no binary floating-point rounding error on salary figures.
-// - Salary is an append-only history table (`SalaryRecord`), not a column on
-//   `Employee` — see docs/decisions.md #4. The "current" record is the one
-//   row per employee with `endDate IS NULL`; that invariant is enforced by a
-//   partial unique index added in the migration SQL (Prisma's schema DSL
-//   can't express partial indexes declaratively), not just app logic.
-// - `Country` and `Currency` are small reference tables, not enums, because
-//   they carry data (default currency, exchange rate, minor-unit count)
-//   used by the seed script and later by cross-country analytics —
-//   see docs/decisions.md #8 (static exchange-rate table).
-// - `Department` and `EmploymentStatus` are Postgres enums: a small, known,
-//   closed set of values where a typo should be impossible to persist.
+// Employee, salary history, reference data and revocable HR sessions.
+// The partial unique current-salary index is defined in migration SQL.
 
 generator client {
   provider = "prisma-client-js"
@@ -166,4 +146,15 @@ model SalaryRecord {
   @@index([employeeId, effectiveDate])
   @@index([currencyCode])
   @@map("salary_records")
+}
+
+/// Opaque browser sessions. Only a SHA-256 digest is stored; raw tokens never
+/// leave the login response and can be revoked by deleting the row.
+model HrSession {
+  tokenHash String @id @map("token_hash") @db.Char(64)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([expiresAt])
+  @@map("hr_sessions")
 }

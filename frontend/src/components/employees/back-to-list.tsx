@@ -5,7 +5,7 @@ export function BackToList() {
   return (
     <Link
       href="/employees"
-      className="inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm text-sm outline-none focus-visible:ring-2"
     >
       <ArrowLeft aria-hidden="true" className="size-4" />
       All employees

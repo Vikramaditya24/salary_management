@@ -22,7 +22,7 @@ export function CreateEmployeePage() {
       <BackToList />
       <div>
         <h1 className="text-2xl font-semibold">Add employee</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-1 text-sm">
           The employee number is assigned automatically. Salary is recorded separately.
         </p>
       </div>
